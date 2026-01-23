@@ -1,0 +1,116 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum UserRole {
+  ADMIN
+  CLIENT
+  PARTNER
+}
+
+enum UserGender {
+  male
+  female
+}
+
+model User {
+  id                Int             @id @default(autoincrement())
+  phone             String          @unique
+  name              String
+  email             String          @unique
+  gender            UserGender
+  avatar            String?
+  fcm               String[]
+  password          String
+  refresh_tokens    String[]
+  role              UserRole
+  notifications     Notification[]
+  deleted           Boolean         @default(false)
+  active            Boolean         @default(true)
+  verified          Boolean         @default(false)
+  deletedAt         DateTime?
+  birthDate         DateTime?
+  // relations---------------------------------------------------------------------//
+  partner           Partner?
+  admin             Admin?
+  passwordReset     PasswordReset[]
+  sessions          RefreshSession[]
+  // --- OTHER ---------------------------------------------------------------------//
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model RefreshSession {
+  id        Int      @id @default(autoincrement())
+  token     String
+  fcm       String
+  userId    Int
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+}
+
+
+model Admin {
+  id              Int               @id 
+  user            User              @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model Partner {
+  id                Int          @id
+  user              User         @relation(fields: [id], references: [id], onDelete: Cascade)
+  //-------------------------------------------------------------------------------
+}
+
+model PhoneOtp {
+  id        Int      @id @default(autoincrement())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model Notification {
+  // --- IDENTIFICATION --------------------------------------------------------------------- //
+  id        Int                @id @default(autoincrement())
+  // --- DETAILS --------------------------------------------------------------------------- //
+  title     String
+  content   String             @default("")
+  // --- FOREIGN KEYS --------------------------------------------------------------------------- //
+  userId    Int?
+  // --- RELATIONS --------------------------------------------------------------------------- //
+  user      User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // --- STATUS --------------------------------------------------------------------------- //
+  seen      Boolean            @default(false)
+  // --- OTHER --------------------------------------------------------------------- //
+  createdAt DateTime           @default(now())
+
+  @@index([userId])
+}
+
