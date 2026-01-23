@@ -65,6 +65,36 @@ export class SignupDto {
   password: string;
 }
 
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @Length(11)
+  phone: string;
+
+  @IsOptional()
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  email: string;
+
+  @IsOptional()
+  @IsEnum(UserRole)
+  role: UserRole;
+
+  @IsOptional()
+  @IsEnum(UserGender)
+  gender: UserGender;
+
+  @IsString()
+  @IsOptional()
+  avatar: string;
+
+  @IsOptional()
+  @IsString()
+  birthDate: string;
+}
 export class LoginDto {
   @IsString()
   identifier: string; // email OR phone

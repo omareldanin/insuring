@@ -3,12 +3,14 @@ import { Prisma } from "@prisma/client";
 export const userSelect = {
   id: true,
   name: true,
+  email: true,
+  gender: true,
+  birthDate: true,
   phone: true,
   avatar: true,
   role: true,
   deleted: true,
   deletedAt: true,
-  password: true,
 } satisfies Prisma.UserSelect;
 
 export const userSelectReform = (

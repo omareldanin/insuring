@@ -7,6 +7,7 @@ import {
   UseInterceptors,
   Req,
   Get,
+  Patch,
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import {
@@ -16,6 +17,7 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SignupDto,
+  UpdateProfileDto,
   VerifyPhoneDto,
 } from "./auth.dto";
 import { JwtAuthGuard } from "src/middlewares/jwt-auth.guard";
@@ -65,7 +67,7 @@ export class AuthController {
 
   @UseInterceptors(NoFilesInterceptor())
   @Post("/forget-password")
-  forgetPassword(@Body() dto: ForgotPasswordDto) {
+  forgetPassword(@Body() dto: { identifier: string }) {
     return this.authService.forgotPassword(dto);
   }
 
@@ -79,10 +81,24 @@ export class AuthController {
 
   @UseInterceptors(NoFilesInterceptor())
   @UseGuards(JwtAuthGuard)
+  @Patch("/new-password")
+  resetPasswordFromOld(
+    @Body() dto: { oldPassword: string; newPassword: string },
+    @Req() req,
+  ) {
+    const loggedInUser = req.user as LoggedInUserType;
+
+    return this.authService.resetNewPassword({
+      userId: loggedInUser.id,
+      oldPassword: dto.oldPassword,
+      newPassword: dto.newPassword,
+    });
+  }
+
+  @UseInterceptors(NoFilesInterceptor())
+  @UseGuards(JwtAuthGuard)
   @Post("/refresh-token")
   refreshToken(@Body() dto: { refreshToken: string }) {
-    console.log(dto);
-
     return this.authService.refreshToken(dto);
   }
 
@@ -111,6 +127,23 @@ export class AuthController {
   }
 
   @UseInterceptors(NoFilesInterceptor())
+  @UseGuards(JwtAuthGuard)
+  @Patch("/edit-profile")
+  editProfile(
+    @Body() dto: UpdateProfileDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req,
+  ) {
+    const loggedInUser = req.user as LoggedInUserType;
+
+    if (file) {
+      dto.avatar = "uploads/" + file.filename;
+    }
+
+    return this.authService.updateProfile(loggedInUser.id, dto);
+  }
+
+  @UploadImageInterceptor("avatar")
   @UseGuards(JwtAuthGuard)
   @Get("/profile")
   getProfile(@Req() req) {

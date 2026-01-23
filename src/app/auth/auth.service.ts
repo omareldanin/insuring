@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -14,6 +15,7 @@ import {
   RefreshTokenDto,
   ResetPasswordDto,
   SignupDto,
+  UpdateProfileDto,
   VerifyPhoneDto,
 } from "./auth.dto";
 import { User, UserRole } from "@prisma/client";
@@ -192,6 +194,10 @@ export class AuthService {
       userId: user.id,
     });
 
+    if (!user.verified) {
+      await this.sendOtp(user.phone);
+    }
+
     return {
       status: "success",
       verified: user.verified,
@@ -236,6 +242,7 @@ export class AuthService {
       : { phone: dto.identifier };
 
     const user = await this.prisma.user.findFirst({ where });
+
     if (!user) return { message: "If user exists, OTP sent" };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -281,6 +288,48 @@ export class AuthService {
         where: { id: reset.id },
         data: { used: true },
       }),
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: hashedPassword,
+        },
+      }),
+    ]);
+    const date = new Date();
+
+    await this.notificationsService.sendNotification({
+      title: `تغيير كلمة المرور`,
+      content: `تم تغيير كلمه المرور بتاريخ ${date.toLocaleString()}`,
+      userId: user.id,
+    });
+
+    return { message: "Password updated successfully" };
+  }
+
+  async resetNewPassword(dto: {
+    userId: number;
+    oldPassword: string;
+    newPassword: string;
+  }) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: dto.userId },
+    });
+
+    if (!user) throw new BadRequestException("Invalid request");
+
+    const isMatch = bcrypt.compareSync(
+      dto.oldPassword + (env.PASSWORD_SALT as string),
+      user.password,
+    );
+
+    if (!isMatch) throw new UnauthorizedException("Invalid credentials");
+
+    const hashedPassword = await bcrypt.hash(
+      dto.newPassword + env.PASSWORD_SALT,
+      12,
+    );
+
+    await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: user.id },
         data: {
@@ -405,5 +454,30 @@ export class AuthService {
         birthDate: true,
       },
     });
+  }
+  async updateProfile(id: number, data: UpdateProfileDto) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException("user not found");
+    }
+    const updatedUser = await this.prisma.user.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: data.name,
+        avatar: data.avatar,
+        email: data.email,
+        gender: data.gender,
+        birthDate: data.birthDate,
+      },
+    });
+
+    return updatedUser;
   }
 }

@@ -1,85 +1,40 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { UserRole } from "@prisma/client";
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  Length,
+  MinLength,
+} from "class-validator";
+import { UserGender, UserRole } from "@prisma/client";
+import { PartialType } from "@nestjs/mapped-types";
 
 export class CreateUserDto {
   @IsString()
-  @IsNotEmpty()
+  @Length(11)
   phone: string;
 
   @IsString()
-  @IsNotEmpty()
-  password: string;
-
-  @IsOptional()
-  @IsString()
-  name?: string;
+  name: string;
 
   @IsString()
-  @IsOptional()
-  avatar?: string;
-
-  @IsOptional()
-  @IsString()
-  fcm?: string;
-
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  latitude?: string;
-
-  @IsOptional()
-  @IsString()
-  longitudes?: string;
+  email: string;
 
   @IsEnum(UserRole)
   role: UserRole;
 
-  @IsOptional()
-  @IsEnum(Permissions, { each: true })
-  permissions: Permissions[];
-}
-
-export class UpdateUserDto {
-  @IsString()
-  @IsOptional()
-  phone: string;
+  @IsEnum(UserGender)
+  gender: UserGender;
 
   @IsString()
   @IsOptional()
+  avatar: string;
+
+  @IsString()
+  birthDate: string;
+
+  @IsString()
+  @MinLength(8)
   password: string;
-
-  @IsOptional()
-  @IsString()
-  name?: string;
-
-  @IsString()
-  @IsOptional()
-  avatar?: string;
-
-  @IsOptional()
-  @IsString()
-  fcm?: string;
-
-  @IsOptional()
-  @IsString()
-  address?: string;
-
-  @IsOptional()
-  @IsString()
-  latitude?: string;
-
-  @IsOptional()
-  @IsString()
-  online?: string;
-
-  @IsOptional()
-  @IsString()
-  longitudes?: string;
-
-  @IsOptional()
-  @IsEnum(Permissions, { each: true })
-  permissions: Permissions[];
 }
+
+export class UpdateUserDto extends PartialType(CreateUserDto) {}
