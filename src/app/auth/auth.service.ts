@@ -68,7 +68,7 @@ export class AuthService {
         password: hashedPassword,
         role: dto.role,
         verified: false,
-        avatar: dto.avatar,
+        avatar: dto.image,
       },
     });
 
@@ -471,7 +471,7 @@ export class AuthService {
       },
       data: {
         name: data.name,
-        avatar: data.avatar,
+        avatar: data.image,
         email: data.email,
         gender: data.gender,
         birthDate: data.birthDate,

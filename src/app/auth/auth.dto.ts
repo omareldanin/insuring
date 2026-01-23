@@ -55,7 +55,7 @@ export class SignupDto {
 
   @IsString()
   @IsOptional()
-  avatar: string;
+  image: string;
 
   @IsString()
   birthDate: string;
@@ -89,7 +89,7 @@ export class UpdateProfileDto {
 
   @IsString()
   @IsOptional()
-  avatar: string;
+  image: string;
 
   @IsOptional()
   @IsString()

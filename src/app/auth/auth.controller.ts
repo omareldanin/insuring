@@ -36,7 +36,7 @@ export class AuthController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (file) {
-      signUpDto.avatar = "uploads/" + file.filename;
+      signUpDto.image = "uploads/" + file.filename;
     }
     return this.authService.signup(signUpDto);
   }
@@ -137,7 +137,7 @@ export class AuthController {
     const loggedInUser = req.user as LoggedInUserType;
 
     if (file) {
-      dto.avatar = "uploads/" + file.filename;
+      dto.image = "uploads/" + file.filename;
     }
 
     return this.authService.updateProfile(loggedInUser.id, dto);
