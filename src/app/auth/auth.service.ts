@@ -124,13 +124,15 @@ export class AuthService {
     return { message: "OTP sent" };
   }
 
-  async verifyPhone(dto: VerifyPhoneDto) {
+  async verifyPhone(dto: { phone: string; code: string }) {
     const otp = await this.prisma.phoneOtp.findFirst({
       where: {
-        phone: dto.phone,
-        code: dto.code,
-        used: false,
-        expiresAt: { gt: new Date() },
+        AND: [
+          { phone: dto.phone },
+          { code: dto.code },
+          { used: false },
+          { expiresAt: { gt: new Date() } },
+        ],
       },
     });
 
@@ -197,6 +199,54 @@ export class AuthService {
     if (!user.verified) {
       await this.sendOtp(user.phone);
     }
+
+    return {
+      status: "success",
+      verified: user.verified,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    };
+  }
+
+  async loginAdmin(dto: LoginDto) {
+    const { identifier, password } = dto;
+
+    const where = this.isEmail(identifier)
+      ? { email: identifier.toLowerCase() }
+      : { phone: identifier };
+
+    const user = await this.prisma.user.findFirst({
+      where: { ...where, role: "ADMIN" },
+    });
+
+    if (!user || user.deleted)
+      throw new UnauthorizedException("Invalid credentials");
+
+    if (!user.active) throw new ForbiddenException("Account disabled");
+
+    const isMatch = bcrypt.compareSync(
+      password + (env.PASSWORD_SALT as string),
+      user.password,
+    );
+
+    if (!isMatch) throw new UnauthorizedException("Invalid credentials");
+
+    // if (!user.verified) throw new ForbiddenException("Phone not verified");
+    const tokens = await this.generateTokens(user);
+
+    const session = await this.prisma.refreshSession.create({
+      data: {
+        token: tokens.hashedRefresh,
+        fcm: dto.fcm,
+        userId: user.id,
+      },
+    });
+
+    await this.notificationsService.sendNotification({
+      title: `تسجيل الدخول`,
+      content: `تم تسجيل الدخول بتاريخ ${session.createdAt.toLocaleString()}`,
+      userId: user.id,
+    });
 
     return {
       status: "success",

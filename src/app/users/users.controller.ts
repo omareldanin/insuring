@@ -65,10 +65,19 @@ export class UsersController {
       user: { ...user, password: null },
     };
   }
+
   @UseGuards(JwtAuthGuard)
   @Get("/getAll")
   getAll(@Query() filters: any) {
     const result = this.userService.getAllUser(filters);
+
+    return result;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("/:id")
+  getOne(@Param("id") id: number) {
+    const result = this.userService.getUserByID(id);
 
     return result;
   }

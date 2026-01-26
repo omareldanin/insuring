@@ -11,11 +11,8 @@ import {
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import {
-  ForgotPasswordDto,
   LoggedInUserType,
   LoginDto,
-  RefreshTokenDto,
-  ResetPasswordDto,
   SignupDto,
   UpdateProfileDto,
   VerifyPhoneDto,
@@ -48,6 +45,11 @@ export class AuthController {
   }
 
   @UseInterceptors(NoFilesInterceptor())
+  @Post("/login-admin")
+  signInAdmin(@Body() signInDto: LoginDto) {
+    return this.authService.loginAdmin(signInDto);
+  }
+  @UseInterceptors(NoFilesInterceptor())
   @Throttle({
     otp: {
       ttl: 60,
@@ -61,7 +63,7 @@ export class AuthController {
 
   @UseInterceptors(NoFilesInterceptor())
   @Post("/verifyOtp")
-  verifyOtp(@Body() dto: VerifyPhoneDto) {
+  verifyOtp(@Body() dto: { phone: string; code: string }) {
     return this.authService.verifyPhone(dto);
   }
 

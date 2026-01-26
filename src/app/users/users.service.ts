@@ -16,10 +16,22 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async createUser(dto: CreateUserDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
+    const phone = dto.phone;
+
+    const email = dto.email.toLowerCase();
+
+    const exists = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ phone }, { email }],
+      },
     });
-    if (existing) throw new BadRequestException("رقم الهاتف موجود مسبقا");
+
+    if (exists) {
+      if (exists.phone === phone)
+        throw new BadRequestException("رقم الهاتف موجود مسبقا");
+      if (exists.email === email)
+        throw new BadRequestException("البريد الالكتروني موجود مسبقا");
+    }
 
     const hashedPassword = await bcrypt.hash(
       dto.password + env.PASSWORD_SALT,
@@ -33,19 +45,26 @@ export class UsersService {
         name: dto.name,
         avatar: dto.avatar,
         role: dto.role,
-        birthDate: dto.birthDate,
+        birthDate: new Date(dto.birthDate),
         verified: true,
         email: dto.email,
         gender: dto.gender,
       },
     });
-
-    await this.prisma.admin.create({
-      data: {
-        user: { connect: { id: user.id } },
-      },
-    });
-
+    if (dto.role === "ADMIN") {
+      await this.prisma.admin.create({
+        data: {
+          user: { connect: { id: user.id } },
+        },
+      });
+    }
+    if (dto.role === "PARTNER") {
+      await this.prisma.partner.create({
+        data: {
+          user: { connect: { id: user.id } },
+        },
+      });
+    }
     return user;
   }
 

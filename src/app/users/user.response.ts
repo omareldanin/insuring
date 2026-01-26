@@ -9,8 +9,10 @@ export const userSelect = {
   phone: true,
   avatar: true,
   role: true,
+  active: true,
   deleted: true,
   deletedAt: true,
+  createdAt: true,
 } satisfies Prisma.UserSelect;
 
 export const userSelectReform = (
