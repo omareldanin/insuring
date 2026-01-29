@@ -25,6 +25,12 @@ enum UserGender {
   female
 }
 
+enum InsuranceTypeEnum {
+  CAR
+  HEALTH
+  LIFE
+}
+
 model User {
   id                Int             @id @default(autoincrement())
   phone             String          @unique
@@ -114,3 +120,13 @@ model Notification {
   @@index([userId])
 }
 
+model InsurancePlan {
+  id              Int           @id @default(autoincrement())
+  name            String
+  description     String?
+  insuranceType   InsuranceTypeEnum 
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([name, insuranceType]) 
+}

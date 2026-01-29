@@ -8,6 +8,8 @@ import { AuthModule } from "./app/auth/auth.module";
 import { UsersModule } from "./app/users/users.module";
 import { NotificationModule } from "./app/notification/notification.module";
 import { ThrottlerModule } from "@nestjs/throttler";
+import { PlansController } from "./app/plans/plans.controller";
+import { PlansModule } from "./app/plans/plans.module";
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { ThrottlerModule } from "@nestjs/throttler";
     AuthModule,
     UsersModule,
     NotificationModule,
+    PlansModule,
   ],
   controllers: [AppController],
   providers: [AppService],
