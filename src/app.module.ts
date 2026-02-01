@@ -8,8 +8,10 @@ import { AuthModule } from "./app/auth/auth.module";
 import { UsersModule } from "./app/users/users.module";
 import { NotificationModule } from "./app/notification/notification.module";
 import { ThrottlerModule } from "@nestjs/throttler";
-import { PlansController } from "./app/plans/plans.controller";
 import { PlansModule } from "./app/plans/plans.module";
+import { CarsModule } from "./app/cars/cars.module";
+import { CompanyModule } from "./app/company/company.module";
+import { RulesModule } from "./app/rules/rules.module";
 
 @Module({
   imports: [
@@ -28,6 +30,9 @@ import { PlansModule } from "./app/plans/plans.module";
     UsersModule,
     NotificationModule,
     PlansModule,
+    CarsModule,
+    CompanyModule,
+    RulesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

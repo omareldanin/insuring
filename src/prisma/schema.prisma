@@ -13,7 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum UserRole {
   ADMIN
   CLIENT
@@ -31,31 +30,36 @@ enum InsuranceTypeEnum {
   LIFE
 }
 
+enum CompanyTypeEnum {
+  SOLIDARITY
+  COMMERCIAL
+}
+
 model User {
-  id                Int             @id @default(autoincrement())
-  phone             String          @unique
-  name              String
-  email             String          @unique
-  gender            UserGender
-  avatar            String?
-  fcm               String[]
-  password          String
-  refresh_tokens    String[]
-  role              UserRole
-  notifications     Notification[]
-  deleted           Boolean         @default(false)
-  active            Boolean         @default(true)
-  verified          Boolean         @default(false)
-  deletedAt         DateTime?
-  birthDate         DateTime?
+  id             Int              @id @default(autoincrement())
+  phone          String           @unique
+  name           String
+  email          String           @unique
+  gender         UserGender
+  avatar         String?
+  fcm            String[]
+  password       String
+  refresh_tokens String[]
+  role           UserRole
+  notifications  Notification[]
+  deleted        Boolean          @default(false)
+  active         Boolean          @default(true)
+  verified       Boolean          @default(false)
+  deletedAt      DateTime?
+  birthDate      DateTime?
   // relations---------------------------------------------------------------------//
-  partner           Partner?
-  admin             Admin?
-  passwordReset     PasswordReset[]
-  sessions          RefreshSession[]
+  partner        Partner?
+  admin          Admin?
+  passwordReset  PasswordReset[]
+  sessions       RefreshSession[]
   // --- OTHER ---------------------------------------------------------------------//
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
 }
 
 model RefreshSession {
@@ -70,15 +74,14 @@ model RefreshSession {
   @@unique([token])
 }
 
-
 model Admin {
-  id              Int               @id 
-  user            User              @relation(fields: [id], references: [id], onDelete: Cascade)
+  id   Int  @id
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
 model Partner {
-  id                Int          @id
-  user              User         @relation(fields: [id], references: [id], onDelete: Cascade)
+  id   Int  @id
+  user User @relation(fields: [id], references: [id], onDelete: Cascade)
   //-------------------------------------------------------------------------------
 }
 
@@ -101,32 +104,121 @@ model PasswordReset {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model Notification {
   // --- IDENTIFICATION --------------------------------------------------------------------- //
-  id        Int                @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   // --- DETAILS --------------------------------------------------------------------------- //
   title     String
-  content   String             @default("")
+  content   String   @default("")
   // --- FOREIGN KEYS --------------------------------------------------------------------------- //
   userId    Int?
   // --- RELATIONS --------------------------------------------------------------------------- //
-  user      User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   // --- STATUS --------------------------------------------------------------------------- //
-  seen      Boolean            @default(false)
+  seen      Boolean  @default(false)
   // --- OTHER --------------------------------------------------------------------- //
-  createdAt DateTime           @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId])
 }
 
 model InsurancePlan {
-  id              Int           @id @default(autoincrement())
-  name            String
-  description     String?
-  insuranceType   InsuranceTypeEnum 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  id            Int               @id @default(autoincrement())
+  name          String
+  description   String?
+  insuranceType InsuranceTypeEnum
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  companyPlan   CompanyPlan[]
+  healthRules   HealthRules[]
+  lifeRules     LifeRules[]
 
-  @@unique([name, insuranceType]) 
+  @@unique([name, insuranceType])
+}
+
+model InsuranceCompany {
+  id             Int                 @id @default(autoincrement())
+  name           String              @unique
+  logo           String?
+  email          String              @unique
+  companyType    CompanyTypeEnum
+  insuranceTypes InsuranceTypeEnum[]
+  companyPlans   CompanyPlan[]
+  healthRules    HealthRules[]
+  lifeRules      LifeRules[]
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
+
+model CompanyPlan {
+  id        Int              @id @default(autoincrement())
+  companyId Int
+  planId    Int
+  company   InsuranceCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan      InsurancePlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  features  String
+  createdAt DateTime         @default(now())
+
+  @@unique([companyId, planId])
+}
+
+model CarMake {
+  id             Int        @id @default(autoincrement())
+  name           String     @unique
+  normalizedName String     @unique
+  models         CarModel[]
+  createdAt      DateTime   @default(now())
+}
+
+model CarModel {
+  id             Int       @id @default(autoincrement())
+  name           String
+  normalizedName String
+  makeId         Int
+  make           CarMake   @relation(fields: [makeId], references: [id], onDelete: Cascade)
+  years          CarYear[]
+  createdAt      DateTime  @default(now())
+
+  @@unique([normalizedName, makeId])
+}
+
+model CarYear {
+  id           Int      @id @default(autoincrement())
+  year         Int
+  minimumPrice Int?     @default(0)
+  modelId      Int
+  model        CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([year, modelId])
+}
+
+model HealthRules {
+  id            Int               @id @default(autoincrement())
+  from          Int
+  to            Int
+  gender        UserGender
+  insuranceType InsuranceTypeEnum
+  price         Int
+  createdAt     DateTime          @default(now())
+
+  planId             Int?
+  plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+  insuranceCompanyId Int?
+}
+
+model LifeRules {
+  id            Int               @id @default(autoincrement())
+  from          Int
+  to            Int
+  gender        UserGender
+  insuranceType InsuranceTypeEnum
+  persitage     Int
+  createdAt     DateTime          @default(now())
+
+  planId             Int?
+  plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+  insuranceCompanyId Int?
 }
