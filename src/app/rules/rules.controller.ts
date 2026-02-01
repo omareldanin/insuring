@@ -20,27 +20,27 @@ export class RulesController {
   constructor(private readonly service: RulesService) {}
 
   /* ========= CREATE RULES ========= */
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post("health")
   createHealth(@Body() dto: CreateHealthRulesDto) {
     return this.service.upsertHealthRules(dto);
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post("life")
   createLife(@Body() dto: CreateLifeRulesDto) {
     return this.service.upsertLifeRules(dto);
   }
   /* ========= GET OFFERS ========= */
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
   @Post("health/offers")
   getHealthOffers(@Body() dto: GetOffersDto) {
     return this.service.getHealthOffers(dto);
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
   @Post("life/offers")
   getLifeOffers(@Body() dto: GetOffersDto) {
