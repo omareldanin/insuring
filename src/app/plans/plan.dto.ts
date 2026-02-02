@@ -1,4 +1,6 @@
 import {
+  IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNumber,
@@ -12,9 +14,15 @@ export class CreatePlanDto {
   @IsString()
   name: string;
 
-  @IsOptional()
   @IsString()
-  description?: string;
+  hint: string;
+
+  @IsBoolean()
+  recommend: boolean;
+
+  @IsOptional()
+  @IsArray()
+  description?: string[];
 
   @IsEnum(InsuranceTypeEnum)
   insuranceType: InsuranceTypeEnum;
@@ -25,8 +33,16 @@ export class UpdatePlanDto {
   name?: string;
 
   @IsOptional()
+  @IsArray()
+  description?: string[];
+
+  @IsOptional()
   @IsString()
-  description?: string;
+  hint: string;
+
+  @IsOptional()
+  @IsBoolean()
+  recommend: boolean;
 
   @IsOptional()
   @IsEnum(InsuranceTypeEnum)

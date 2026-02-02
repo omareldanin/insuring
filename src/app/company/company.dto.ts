@@ -6,7 +6,6 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { Type } from "class-transformer";
 import { CompanyTypeEnum, InsuranceTypeEnum } from "@prisma/client";
 import { OmitType, PartialType } from "@nestjs/mapped-types";
 
@@ -37,13 +36,13 @@ export class CreateCompanyDto {
   @ValidateNested({ each: true })
   companyPlans: {
     planId: number;
-    features: string; // JSON string OR plain text
+    features: string[]; // JSON string OR plain text
   }[];
 }
 
 export class UpdateCompanyPlanDto {
-  @IsString()
-  features: string;
+  @IsArray()
+  features: string[];
 }
 
 export class UpdateCompanyDto extends PartialType(

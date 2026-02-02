@@ -43,16 +43,20 @@ export class PlansService {
         name: dto.name,
         description: dto.description,
         insuranceType: dto.insuranceType,
+        hint: dto.hint,
+        recommend: dto.recommend,
       },
     });
   }
 
   async findAll(type?: InsuranceTypeEnum) {
-    return this.prisma.insurancePlan.findMany({
+    const results = await this.prisma.insurancePlan.findMany({
       where: {
         insuranceType: type || undefined,
       },
     });
+
+    return { results };
   }
 
   async findByType(type: InsuranceTypeEnum) {
@@ -77,6 +81,8 @@ export class PlansService {
         name: dto.name,
         description: dto.description,
         insuranceType: dto.insuranceType,
+        hint: dto.hint,
+        recommend: dto.recommend,
       },
     });
   }

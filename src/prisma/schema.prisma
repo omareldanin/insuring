@@ -130,7 +130,9 @@ model Notification {
 model InsurancePlan {
   id            Int               @id @default(autoincrement())
   name          String
-  description   String?
+  hint          String
+  description   String[]
+  recommend     Boolean           @default(false)
   insuranceType InsuranceTypeEnum
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -163,7 +165,7 @@ model CompanyPlan {
   planId    Int
   company   InsuranceCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
   plan      InsurancePlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
-  features  String
+  features  String[]         @default(["third party liability", "stantard support"])
   createdAt DateTime         @default(now())
 
   @@unique([companyId, planId])
