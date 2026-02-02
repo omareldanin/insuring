@@ -1,14 +1,18 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
+  Query,
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
 import { RulesService } from "./rules.service";
 import {
+  CreateCarRuleDto,
   CreateHealthRulesDto,
   DeleteRulesDto,
+  GetCarOffersDto,
   GetOffersDto,
 } from "./rules.dto";
 import { CreateLifeRulesDto } from "./rules.dto";
@@ -31,7 +35,24 @@ export class RulesController {
   createLife(@Body() dto: CreateLifeRulesDto) {
     return this.service.upsertLifeRules(dto);
   }
+
+  // @UseGuards(JwtAuthGuard)
+  @Post("car")
+  upsert(@Body() dto: CreateCarRuleDto & { id?: number }) {
+    return this.service.upsertCarRule(dto);
+  }
   /* ========= GET OFFERS ========= */
+
+  @Get("getRules")
+  getAll(
+    @Query("planId") planId?: number,
+    @Query("companyId") insuranceCompanyId?: number,
+  ) {
+    return this.service.getAllRules({
+      planId: planId ? +planId : undefined,
+      insuranceCompanyId: insuranceCompanyId ? +insuranceCompanyId : undefined,
+    });
+  }
 
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
@@ -45,6 +66,13 @@ export class RulesController {
   @Post("life/offers")
   getLifeOffers(@Body() dto: GetOffersDto) {
     return this.service.getLifeOffers(dto);
+  }
+
+  // @UseGuards(JwtAuthGuard)
+  @UseInterceptors(NoFilesInterceptor())
+  @Post("car/offers")
+  getOffers(@Body() dto: GetCarOffersDto) {
+    return this.service.getCarOffers(dto);
   }
 
   @UseGuards(JwtAuthGuard)

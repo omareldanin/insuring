@@ -35,6 +35,11 @@ enum CompanyTypeEnum {
   COMMERCIAL
 }
 
+enum CarRuleType {
+  RANGE
+  GROUP
+}
+
 model User {
   id             Int              @id @default(autoincrement())
   phone          String           @unique
@@ -132,6 +137,7 @@ model InsurancePlan {
   companyPlan   CompanyPlan[]
   healthRules   HealthRules[]
   lifeRules     LifeRules[]
+  carRules      CarRules[]
 
   @@unique([name, insuranceType])
 }
@@ -148,6 +154,7 @@ model InsuranceCompany {
   lifeRules      LifeRules[]
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
+  carRules       CarRules[]
 }
 
 model CompanyPlan {
@@ -163,32 +170,35 @@ model CompanyPlan {
 }
 
 model CarMake {
-  id             Int        @id @default(autoincrement())
-  name           String     @unique
-  normalizedName String     @unique
+  id             Int            @id @default(autoincrement())
+  name           String         @unique
+  normalizedName String         @unique
   models         CarModel[]
-  createdAt      DateTime   @default(now())
+  createdAt      DateTime       @default(now())
+  carRuleGroups  CarRuleGroup[]
 }
 
 model CarModel {
-  id             Int       @id @default(autoincrement())
+  id             Int            @id @default(autoincrement())
   name           String
   normalizedName String
   makeId         Int
-  make           CarMake   @relation(fields: [makeId], references: [id], onDelete: Cascade)
+  make           CarMake        @relation(fields: [makeId], references: [id], onDelete: Cascade)
   years          CarYear[]
-  createdAt      DateTime  @default(now())
+  createdAt      DateTime       @default(now())
+  carRuleGroups  CarRuleGroup[]
 
   @@unique([normalizedName, makeId])
 }
 
 model CarYear {
-  id           Int      @id @default(autoincrement())
-  year         Int
-  minimumPrice Int?     @default(0)
-  modelId      Int
-  model        CarModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
-  createdAt    DateTime @default(now())
+  id            Int            @id @default(autoincrement())
+  year          Int
+  minimumPrice  Int?           @default(0)
+  modelId       Int
+  model         CarModel       @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  createdAt     DateTime       @default(now())
+  carRuleGroups CarRuleGroup[]
 
   @@unique([year, modelId])
 }
@@ -214,11 +224,53 @@ model LifeRules {
   to            Int
   gender        UserGender
   insuranceType InsuranceTypeEnum
-  persitage     Int
+  persitage     Float
   createdAt     DateTime          @default(now())
 
   planId             Int?
   plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
   insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
   insuranceCompanyId Int?
+}
+
+model CarRules {
+  id       Int         @id @default(autoincrement())
+  ruleType CarRuleType // 👈 NEW
+
+  // ===== RANGE RULE =====
+  from Int?
+  to   Int?
+
+  // ===== GROUP RULE =====
+  persitage Float
+
+  insuranceType InsuranceTypeEnum
+  createdAt     DateTime          @default(now())
+
+  planId             Int?
+  plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  insuranceCompanyId Int?
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+
+  carGroups CarRuleGroup[]
+}
+
+model CarRuleGroup {
+  id     Int      @id @default(autoincrement())
+  ruleId Int
+  rule   CarRules @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  groupName String
+
+  makeId  Int
+  modelId Int?
+  year    Int? // 👈 store year directly (simpler than CarYear join)
+
+  make      CarMake   @relation(fields: [makeId], references: [id])
+  model     CarModel? @relation(fields: [modelId], references: [id])
+  carYear   CarYear?  @relation(fields: [carYearId], references: [id])
+  carYearId Int?
+
+  @@index([groupName])
+  @@index([makeId, modelId, year])
 }

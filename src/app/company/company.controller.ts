@@ -23,7 +23,7 @@ import { UploadImageInterceptor } from "src/middlewares/file-upload.interceptor"
 export class CompanyController {
   constructor(private readonly service: CompanyService) {}
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @UploadImageInterceptor("image")
   @Post("create")
   create(
@@ -33,7 +33,6 @@ export class CompanyController {
     if (file) {
       dto.logo = "uploads/1769117418161-255385753.svg"; // or save full path if you want
     }
-    console.log(dto);
 
     return this.service.create(dto);
   }

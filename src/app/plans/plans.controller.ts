@@ -28,7 +28,7 @@ export class PlansController {
     return this.service.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get("/getAll")
   findAll(@Query("type") type: InsuranceTypeEnum) {
     return this.service.findAll(type);
