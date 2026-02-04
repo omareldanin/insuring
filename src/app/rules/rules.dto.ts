@@ -3,6 +3,7 @@ import {
   IsArray,
   IsEnum,
   IsInt,
+  IsNotEmpty,
   IsOptional,
   IsString,
   Min,
@@ -26,6 +27,24 @@ export class GetOffersDto {
   @IsOptional()
   @IsInt()
   price: number;
+}
+
+class FamilyMemberDto {
+  @IsInt()
+  @Min(0)
+  age: number;
+
+  @IsEnum(UserGender)
+  gender: UserGender;
+}
+
+export class GetFamilyOffersDto {
+  @IsInt()
+  planId: number;
+
+  @IsArray()
+  @IsNotEmpty()
+  members: FamilyMemberDto[];
 }
 
 class HealthRuleItemDto {

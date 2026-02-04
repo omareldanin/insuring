@@ -54,7 +54,7 @@ export class CarsController {
   }
 
   // ---------- Public ----------
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get("getAll")
   getCars(@Query() query: GetCarsDto) {
     return this.service.getCars(query);

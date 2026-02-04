@@ -6,6 +6,7 @@ import {
   CreateLifeRulesDto,
   DeleteRulesDto,
   GetCarOffersDto,
+  GetFamilyOffersDto,
   GetOffersDto,
 } from "./rules.dto";
 import { CarRuleType } from "@prisma/client";
@@ -301,6 +302,63 @@ export class RulesService {
       },
     });
     return { results };
+  }
+
+  async getHealthFamilyOffers(dto: GetFamilyOffersDto) {
+    const { planId, members } = dto;
+
+    const offersByCompany = new Map<number, any>();
+
+    for (const member of members) {
+      const rules = await this.prisma.healthRules.findMany({
+        where: {
+          planId,
+          gender: member.gender,
+          from: { lte: member.age },
+          to: { gte: member.age },
+        },
+        select: {
+          price: true,
+          insuranceCompany: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+              companyPlans: {
+                where: { planId },
+                select: { features: true },
+              },
+            },
+          },
+        },
+      });
+
+      for (const rule of rules) {
+        const companyId = rule.insuranceCompany.id;
+
+        if (!offersByCompany.has(companyId)) {
+          offersByCompany.set(companyId, {
+            insuranceCompany: rule.insuranceCompany,
+            members: [],
+            totalPrice: 0,
+          });
+        }
+
+        const companyOffer = offersByCompany.get(companyId);
+
+        companyOffer.members.push({
+          age: member.age,
+          gender: member.gender,
+          price: rule.price,
+        });
+
+        companyOffer.totalPrice += rule.price;
+      }
+    }
+
+    return {
+      results: Array.from(offersByCompany.values()),
+    };
   }
 
   /* ================= GET LIFE OFFERS ================= */

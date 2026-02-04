@@ -13,6 +13,7 @@ import {
   CreateHealthRulesDto,
   DeleteRulesDto,
   GetCarOffersDto,
+  GetFamilyOffersDto,
   GetOffersDto,
 } from "./rules.dto";
 import { CreateLifeRulesDto } from "./rules.dto";
@@ -61,6 +62,13 @@ export class RulesController {
     return this.service.getHealthOffers(dto);
   }
 
+  // @UseGuards(JwtAuthGuard)
+  @UseInterceptors(NoFilesInterceptor())
+  @Post("family/health/offers")
+  getFamilyHealthOffers(@Body() dto: GetFamilyOffersDto) {
+    return this.service.getHealthFamilyOffers(dto);
+  }
+
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
   @Post("life/offers")
@@ -68,7 +76,7 @@ export class RulesController {
     return this.service.getLifeOffers(dto);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
   @Post("car/offers")
   getOffers(@Body() dto: GetCarOffersDto) {

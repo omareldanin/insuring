@@ -66,6 +66,13 @@ export class PlansService {
       },
     });
   }
+  async findById(id: number) {
+    return this.prisma.insurancePlan.findUnique({
+      where: {
+        id: id,
+      },
+    });
+  }
   async update(id: number, dto: UpdatePlanDto) {
     const plan = await this.prisma.insurancePlan.findUnique({
       where: { id },

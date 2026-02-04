@@ -41,6 +41,12 @@ export class PlansController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get(":id")
+  getOne(@Param("id", ParseIntPipe) id: number) {
+    return this.service.findById(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(":id")
   remove(@Param("id", ParseIntPipe) id: number) {
     return this.service.remove(id);
