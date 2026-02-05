@@ -450,6 +450,13 @@ export class RulesService {
       },
     });
 
+    console.log({
+      result: rules.map((r) => ({
+        ...r,
+        finalPrice: (dto.price * r.persitage) / 100,
+      })),
+    });
+
     return {
       result: rules.map((r) => ({
         ...r,
