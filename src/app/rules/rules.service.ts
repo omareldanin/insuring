@@ -415,8 +415,8 @@ export class RulesService {
         },
         OR: [
           {
-            from: { lte: dto.price },
-            to: { gte: dto.price },
+            from: { gt: dto.price },
+            to: { lte: dto.price },
           },
           {
             carGroups: {
