@@ -449,6 +449,7 @@ export class RulesService {
         },
       },
     });
+    console.log(dto);
 
     console.log({
       result: rules.map((r) => ({
