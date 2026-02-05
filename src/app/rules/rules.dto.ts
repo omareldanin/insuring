@@ -9,7 +9,12 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-import { UserGender, InsuranceTypeEnum, CarRuleType } from "@prisma/client";
+import {
+  UserGender,
+  InsuranceTypeEnum,
+  CarRuleType,
+  CompanyTypeEnum,
+} from "@prisma/client";
 import { Type } from "class-transformer";
 
 export class GetOffersDto {
@@ -27,6 +32,10 @@ export class GetOffersDto {
   @IsOptional()
   @IsInt()
   price: number;
+
+  @IsOptional()
+  @IsEnum(CompanyTypeEnum)
+  companyType: CompanyTypeEnum;
 }
 
 class FamilyMemberDto {
@@ -41,6 +50,10 @@ class FamilyMemberDto {
 export class GetFamilyOffersDto {
   @IsInt()
   planId: number;
+
+  @IsOptional()
+  @IsEnum(CompanyTypeEnum)
+  companyType: CompanyTypeEnum;
 
   @IsArray()
   @IsNotEmpty()
@@ -106,6 +119,10 @@ class LifeRuleItemDto {
 
   @IsInt()
   insuranceCompanyId: number;
+
+  @IsOptional()
+  @IsEnum(CompanyTypeEnum)
+  companyType: CompanyTypeEnum;
 }
 
 export class CreateLifeRulesDto {
@@ -194,4 +211,8 @@ export class GetCarOffersDto {
 
   @IsInt()
   planId: number;
+
+  @IsOptional()
+  @IsEnum(CompanyTypeEnum)
+  companyType: CompanyTypeEnum;
 }

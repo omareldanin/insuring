@@ -24,6 +24,7 @@ export class CompanyService {
     if (emailExists) {
       throw new BadRequestException("Email already exists");
     }
+    console.log(dto);
 
     return this.prisma.insuranceCompany.create({
       data: {
@@ -38,9 +39,6 @@ export class CompanyService {
             features: plan.features,
           })),
         },
-      },
-      include: {
-        companyPlans: true,
       },
     });
   }
@@ -80,12 +78,13 @@ export class CompanyService {
         where,
         skip: (page - 1) * size,
         take: size,
-        include: {
-          companyPlans: {
-            include: {
-              plan: true,
-            },
-          },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          companyType: true,
+          insuranceTypes: true,
+          createdAt: true,
         },
         orderBy: { createdAt: "desc" },
       }),

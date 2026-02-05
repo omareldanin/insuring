@@ -313,6 +313,9 @@ export class RulesService {
       const rules = await this.prisma.healthRules.findMany({
         where: {
           planId,
+          insuranceCompany: {
+            companyType: dto.companyType,
+          },
           gender: member.gender,
           from: { lte: member.age },
           to: { gte: member.age },
@@ -366,6 +369,9 @@ export class RulesService {
     const result = await this.prisma.lifeRules.findMany({
       where: {
         planId: dto.planId,
+        insuranceCompany: {
+          companyType: dto.companyType,
+        },
         gender: dto.gender,
         from: { lte: dto.age },
         to: { gte: dto.age },
@@ -404,6 +410,9 @@ export class RulesService {
     const rules = await this.prisma.carRules.findMany({
       where: {
         planId: dto.planId,
+        insuranceCompany: {
+          companyType: dto.companyType,
+        },
         OR: [
           {
             from: { lte: dto.price },

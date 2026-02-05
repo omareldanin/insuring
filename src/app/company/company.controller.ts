@@ -37,7 +37,7 @@ export class CompanyController {
     return this.service.create(dto);
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get("getAll")
   findAll(
     @Query("page") page?: number,
@@ -55,13 +55,13 @@ export class CompanyController {
     });
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(":id")
   findOne(@Param("id") id: number) {
     return this.service.findOne(+id);
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @UploadImageInterceptor("image")
   @Patch(":id")
   update(

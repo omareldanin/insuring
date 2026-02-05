@@ -164,17 +164,11 @@ export class CarsService {
       ...(year && { year }),
       model: {
         ...(model && {
-          name: {
-            contains: model,
-            mode: Prisma.QueryMode.insensitive,
-          },
+          id: +model,
         }),
         ...(make && {
           make: {
-            name: {
-              contains: make,
-              mode: Prisma.QueryMode.insensitive,
-            },
+            id: +make,
           },
         }),
       },
