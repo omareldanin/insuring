@@ -67,7 +67,7 @@ export class CompanyController {
   update(
     @Param("id") id: number,
     @UploadedFile() file: Express.Multer.File,
-    @Body() dto: UpdateCompanyDto,
+    @Body() dto: CreateCompanyDto,
   ) {
     if (file) {
       dto.logo = "uploads/" + file.filename; // or save full path if you want

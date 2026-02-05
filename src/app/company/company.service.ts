@@ -106,12 +106,20 @@ export class CompanyService {
   async findOne(id: number) {
     const company = await this.prisma.insuranceCompany.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        companyType: true,
+        insuranceTypes: true,
         companyPlans: {
-          include: {
-            plan: true,
+          select: {
+            id: true,
+            features: true,
+            planId: true,
           },
         },
+        createdAt: true,
       },
     });
 
@@ -121,7 +129,7 @@ export class CompanyService {
   }
 
   /* ================= UPDATE COMPANY ================= */
-  async update(id: number, dto: UpdateCompanyDto) {
+  async update(id: number, dto: CreateCompanyDto) {
     await this.findOne(id);
 
     return this.prisma.insuranceCompany.update({
@@ -132,6 +140,15 @@ export class CompanyService {
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
+
+        companyPlans: {
+          deleteMany: {},
+
+          create: dto.companyPlans.map((plan) => ({
+            planId: plan.planId,
+            features: plan.features,
+          })),
+        },
       },
     });
   }
