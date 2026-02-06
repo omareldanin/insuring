@@ -107,19 +107,13 @@ export class RulesService {
             insuranceType: dto.insuranceType,
             planId: dto.planId,
             insuranceCompanyId: dto.insuranceCompanyId,
+            type: dto.type,
             from: dto.ruleType === "RANGE" ? dto.from : null,
             to: dto.ruleType === "RANGE" ? dto.to : null,
           },
         });
 
         ruleId = updated.id;
-
-        // 🔥 If GROUP → reset groups
-        if (dto.ruleType === "GROUP") {
-          await tx.carRuleGroup.deleteMany({
-            where: { ruleId },
-          });
-        }
       }
 
       /* ================= CREATE ================= */
@@ -130,6 +124,7 @@ export class RulesService {
             persitage: dto.persitage,
             insuranceType: dto.insuranceType,
             planId: dto.planId,
+            type: dto.type,
             insuranceCompanyId: dto.insuranceCompanyId,
             from: dto.ruleType === "RANGE" ? dto.from : null,
             to: dto.ruleType === "RANGE" ? dto.to : null,
@@ -144,26 +139,49 @@ export class RulesService {
         if (!dto.groups || dto.groups.length === 0) {
           throw new BadRequestException("GROUP rule must contain groups");
         }
+        const existingGroups = await tx.carRuleGroup.findMany({
+          where: { ruleId },
+          select: {
+            groupName: true,
+            makeId: true,
+            modelId: true,
+            year: true,
+          },
+        });
+
+        const existingSet = new Set(
+          existingGroups.map(
+            (g) =>
+              `${g.groupName}-${g.makeId}-${g.modelId ?? "null"}-${g.year}`,
+          ),
+        );
 
         const rows = [];
 
         for (const group of dto.groups) {
           for (const car of group.cars) {
             for (const year of car.years) {
-              rows.push({
-                ruleId,
-                groupName: group.groupName,
-                makeId: car.makeId,
-                modelId: car.modelId ?? null,
-                year,
-              });
+              const key = `${group.groupName}-${car.makeId}-${car.modelId ?? "null"}-${year}`;
+
+              if (!existingSet.has(key)) {
+                rows.push({
+                  ruleId,
+                  groupName: group.groupName,
+                  makeId: car.makeId,
+                  modelId: car.modelId ?? null,
+                  year,
+                });
+              }
             }
           }
         }
 
-        await tx.carRuleGroup.createMany({
-          data: rows,
-        });
+        if (rows.length > 0) {
+          await tx.carRuleGroup.createMany({
+            data: rows,
+            skipDuplicates: true, // extra safety
+          });
+        }
       }
 
       return {
@@ -178,6 +196,8 @@ export class RulesService {
     planId?: number;
     insuranceCompanyId?: number;
   }) {
+    console.log(filters);
+
     const whereBase: any = {};
 
     if (filters?.planId) {
@@ -191,85 +211,125 @@ export class RulesService {
     /* ================= HEALTH RULES ================= */
     const healthRules = await this.prisma.healthRules.findMany({
       where: whereBase,
-      include: {
-        plan: true,
-        insuranceCompany: true,
-      },
-      orderBy: { createdAt: "desc" },
+      orderBy: { from: "asc" },
     });
 
     /* ================= LIFE RULES ================= */
     const lifeRules = await this.prisma.lifeRules.findMany({
       where: whereBase,
-      include: {
-        plan: true,
-        insuranceCompany: true,
-      },
-      orderBy: { createdAt: "desc" },
+      orderBy: { from: "asc" },
     });
 
     /* ================= CAR RULES ================= */
     const carRules = await this.prisma.carRules.findMany({
       where: whereBase,
-      include: {
-        plan: true,
-        insuranceCompany: true,
-        carGroups: true,
+      select: {
+        id: true,
+        from: true,
+        to: true,
+        persitage: true,
+        createdAt: true,
+        ruleType: true,
+        type: true,
+        carGroups: {
+          select: {
+            groupName: true,
+            makeId: true,
+            modelId: true,
+            year: true,
+            make: {
+              select: {
+                name: true,
+              },
+            },
+            model: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { from: "asc" },
     });
 
     /* ================= SPLIT CAR RULES ================= */
-    const carRangeRules = carRules
-      .filter((r) => r.ruleType === CarRuleType.RANGE)
-      .map((r) => ({
-        id: r.id,
-        from: r.from,
-        to: r.to,
-        persitage: r.persitage,
-        plan: r.plan,
-        insuranceCompany: r.insuranceCompany,
-        createdAt: r.createdAt,
-      }));
+    const carByType = carRules.reduce(
+      (acc, r) => {
+        const type = r.type; // NEW | USED
 
-    const carGroupRules = carRules
-      .filter((r) => r.ruleType === CarRuleType.GROUP)
-      .map((r) => {
-        const groupsMap = new Map<string, any>();
+        if (!acc[type]) {
+          acc[type] = {
+            range: [],
+            groups: [],
+          };
+        }
 
-        for (const g of r.carGroups) {
-          if (!groupsMap.has(g.groupName)) {
-            groupsMap.set(g.groupName, {
-              groupName: g.groupName,
-              cars: [],
-            });
-          }
-
-          groupsMap.get(g.groupName).cars.push({
-            makeId: g.makeId,
-            modelId: g.modelId,
-            year: g.year,
+        if (r.ruleType === CarRuleType.RANGE) {
+          acc[type].range.push({
+            id: r.id,
+            from: r.from,
+            to: r.to,
+            type: r.type,
+            persitage: r.persitage,
+            createdAt: r.createdAt,
           });
         }
 
-        return {
-          id: r.id,
-          persitage: r.persitage,
-          plan: r.plan,
-          insuranceCompany: r.insuranceCompany,
-          createdAt: r.createdAt,
-          groups: Array.from(groupsMap.values()),
-        };
-      });
+        if (r.ruleType === CarRuleType.GROUP) {
+          const groupsMap = new Map<string, any>();
+
+          for (const g of r.carGroups) {
+            if (!groupsMap.has(g.groupName)) {
+              groupsMap.set(g.groupName, {
+                groupName: g.groupName,
+                carsMap: new Map<string, any>(),
+              });
+            }
+
+            const group = groupsMap.get(g.groupName);
+
+            const carKey = `${g.makeId}-${g.modelId ?? "null"}`;
+
+            if (!group.carsMap.has(carKey)) {
+              group.carsMap.set(carKey, {
+                makeId: g.makeId,
+                modelId: g.modelId,
+                make: g.make,
+                model: g.model,
+                years: [],
+              });
+            }
+
+            const car = group.carsMap.get(carKey);
+
+            if (!car.years.includes(g.year)) {
+              car.years.push(g.year);
+            }
+          }
+
+          acc[type].groups.push({
+            id: r.id,
+            persitage: r.persitage,
+            type: r.type,
+            createdAt: r.createdAt,
+            groups: Array.from(groupsMap.values()).map((g) => ({
+              groupName: g.groupName,
+              cars: Array.from(g.carsMap.values()),
+            })),
+          });
+        }
+
+        return acc;
+      },
+      {} as Record<string, { range: any[]; groups: any[] }>,
+    );
 
     /* ================= FINAL RESPONSE ================= */
     return {
       health: healthRules,
       life: lifeRules,
-      car: {
-        range: carRangeRules,
-        groups: carGroupRules,
-      },
+      car: carByType,
     };
   }
   /* ================= GET HEALTH OFFERS ================= */
@@ -413,6 +473,7 @@ export class RulesService {
         insuranceCompany: {
           companyType: dto.companyType,
         },
+        type: dto.type,
         OR: [
           {
             from: { gt: dto.price },
@@ -448,14 +509,6 @@ export class RulesService {
           },
         },
       },
-    });
-    console.log(dto);
-
-    console.log({
-      result: rules.map((r) => ({
-        ...r,
-        finalPrice: (dto.price * r.persitage) / 100,
-      })),
     });
 
     return {
@@ -512,6 +565,58 @@ export class RulesService {
     }
 
     return this.prisma.lifeRules.deleteMany({
+      where: {
+        id: { in: dto.ids },
+      },
+    });
+  }
+
+  async deleteCarRules(dto: DeleteRulesDto) {
+    const existing = await this.prisma.carRules.findMany({
+      where: {
+        id: { in: dto.ids },
+      },
+      select: { id: true },
+    });
+
+    const existingIds = existing.map((r) => r.id);
+
+    const notFoundIds = dto.ids.filter((id) => !existingIds.includes(id));
+
+    if (notFoundIds.length > 0) {
+      throw new BadRequestException({
+        message: "Some life rules do not exist",
+        notFoundIds,
+      });
+    }
+
+    return this.prisma.carRules.deleteMany({
+      where: {
+        id: { in: dto.ids },
+      },
+    });
+  }
+
+  async deleteCarRulesGroupItem(dto: DeleteRulesDto) {
+    const existing = await this.prisma.carRuleGroup.findMany({
+      where: {
+        id: { in: dto.ids },
+      },
+      select: { id: true },
+    });
+
+    const existingIds = existing.map((r) => r.id);
+
+    const notFoundIds = dto.ids.filter((id) => !existingIds.includes(id));
+
+    if (notFoundIds.length > 0) {
+      throw new BadRequestException({
+        message: "Some life rules do not exist",
+        notFoundIds,
+      });
+    }
+
+    return this.prisma.carRuleGroup.deleteMany({
       where: {
         id: { in: dto.ids },
       },

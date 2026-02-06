@@ -30,6 +30,11 @@ enum InsuranceTypeEnum {
   LIFE
 }
 
+enum CarTypeEnum {
+  used
+  new
+}
+
 enum CompanyTypeEnum {
   SOLIDARITY
   COMMERCIAL
@@ -149,6 +154,7 @@ model InsuranceCompany {
   name           String              @unique
   logo           String?
   email          String              @unique
+  ruleType       CarRuleType         @default(RANGE)
   companyType    CompanyTypeEnum
   insuranceTypes InsuranceTypeEnum[]
   companyPlans   CompanyPlan[]
@@ -216,7 +222,7 @@ model HealthRules {
 
   planId             Int?
   plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
-  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
   insuranceCompanyId Int?
 }
 
@@ -231,7 +237,7 @@ model LifeRules {
 
   planId             Int?
   plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
-  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
   insuranceCompanyId Int?
 }
 
@@ -246,13 +252,15 @@ model CarRules {
   // ===== GROUP RULE =====
   persitage Float
 
+  type CarTypeEnum @default(new)
+
   insuranceType InsuranceTypeEnum
   createdAt     DateTime          @default(now())
 
   planId             Int?
   plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
   insuranceCompanyId Int?
-  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id])
+  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
 
   carGroups CarRuleGroup[]
 }

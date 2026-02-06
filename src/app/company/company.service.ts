@@ -33,6 +33,7 @@ export class CompanyService {
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
+        ruleType: dto.ruleType,
         companyPlans: {
           create: dto.companyPlans.map((plan) => ({
             planId: plan.planId,
@@ -84,6 +85,7 @@ export class CompanyService {
           email: true,
           companyType: true,
           insuranceTypes: true,
+          ruleType: true,
           createdAt: true,
         },
         orderBy: { createdAt: "desc" },
@@ -112,6 +114,7 @@ export class CompanyService {
         email: true,
         companyType: true,
         insuranceTypes: true,
+        ruleType: true,
         companyPlans: {
           select: {
             id: true,
@@ -140,7 +143,7 @@ export class CompanyService {
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
-
+        ruleType: dto.ruleType,
         companyPlans: {
           deleteMany: {},
 

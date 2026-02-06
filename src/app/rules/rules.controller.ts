@@ -47,7 +47,7 @@ export class RulesController {
   @Get("getRules")
   getAll(
     @Query("planId") planId?: number,
-    @Query("companyId") insuranceCompanyId?: number,
+    @Query("insuranceCompanyId") insuranceCompanyId?: number,
   ) {
     return this.service.getAllRules({
       planId: planId ? +planId : undefined,
@@ -93,5 +93,11 @@ export class RulesController {
   @Post("life/delete")
   deleteLife(@Body() dto: DeleteRulesDto) {
     return this.service.deleteLifeRules(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("car/delete")
+  deleteCar(@Body() dto: DeleteRulesDto) {
+    return this.service.deleteCarRules(dto);
   }
 }

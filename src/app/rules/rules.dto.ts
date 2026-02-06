@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Min,
@@ -14,6 +15,7 @@ import {
   InsuranceTypeEnum,
   CarRuleType,
   CompanyTypeEnum,
+  CarTypeEnum,
 } from "@prisma/client";
 import { Type } from "class-transformer";
 
@@ -111,7 +113,7 @@ class LifeRuleItemDto {
   @IsEnum(InsuranceTypeEnum)
   insuranceType: InsuranceTypeEnum;
 
-  @IsInt()
+  @IsNumber()
   persitage: number;
 
   @IsInt()
@@ -174,6 +176,9 @@ export class CreateCarRuleDto {
   @IsEnum(InsuranceTypeEnum)
   insuranceType: InsuranceTypeEnum;
 
+  @IsEnum(CarTypeEnum)
+  type: CarTypeEnum;
+
   @IsInt()
   planId: number;
 
@@ -215,4 +220,8 @@ export class GetCarOffersDto {
   @IsOptional()
   @IsEnum(CompanyTypeEnum)
   companyType: CompanyTypeEnum;
+
+  @IsOptional()
+  @IsEnum(CarTypeEnum)
+  type: CarTypeEnum;
 }
