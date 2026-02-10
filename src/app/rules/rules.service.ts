@@ -471,6 +471,8 @@ export class RulesService {
 
   async getCarOffers(dto: GetCarOffersDto) {
     /* ================= GROUP RULES ================= */
+    console.log(dto);
+
     const rules = await this.prisma.carRules.findMany({
       where: {
         planId: dto.planId,
