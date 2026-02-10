@@ -349,6 +349,7 @@ export class RulesService {
             id: true,
             name: true,
             logo: true,
+            arName: true,
             companyPlans: {
               where: {
                 planId: dto.planId,
@@ -387,6 +388,7 @@ export class RulesService {
             select: {
               id: true,
               name: true,
+              arName: true,
               logo: true,
               companyPlans: {
                 where: { planId },
