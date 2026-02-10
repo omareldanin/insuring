@@ -471,7 +471,6 @@ export class RulesService {
 
   async getCarOffers(dto: GetCarOffersDto) {
     /* ================= GROUP RULES ================= */
-    console.log(dto);
 
     const rules = await this.prisma.carRules.findMany({
       where: {
@@ -482,8 +481,8 @@ export class RulesService {
         type: dto.type,
         OR: [
           {
-            from: { gt: dto.price },
-            to: { lte: dto.price },
+            from: { lte: dto.price },
+            to: { gte: dto.price },
           },
           {
             carGroups: {
