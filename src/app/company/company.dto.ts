@@ -22,12 +22,12 @@ export class CreateCompanyDto {
   @IsString()
   name: string;
 
+  @IsString()
+  arName: string;
+
   @IsOptional()
   @IsString()
   logo?: string;
-
-  @IsEnum(CarRuleType)
-  ruleType: CarRuleType;
 
   @IsEmail()
   email: string;
@@ -43,13 +43,17 @@ export class CreateCompanyDto {
   @ValidateNested({ each: true })
   companyPlans: {
     planId: number;
-    features: string[]; // JSON string OR plain text
+    features: string[];
+    arFeatures: string[];
   }[];
 }
 
 export class UpdateCompanyPlanDto {
   @IsArray()
   features: string[];
+
+  @IsArray()
+  arFeatures: string[];
 }
 
 export class UpdateCompanyDto extends PartialType(

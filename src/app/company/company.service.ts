@@ -24,20 +24,20 @@ export class CompanyService {
     if (emailExists) {
       throw new BadRequestException("Email already exists");
     }
-    console.log(dto);
 
     return this.prisma.insuranceCompany.create({
       data: {
         name: dto.name,
+        arName: dto.arName,
         logo: dto.logo,
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
-        ruleType: dto.ruleType,
         companyPlans: {
           create: dto.companyPlans.map((plan) => ({
             planId: plan.planId,
             features: plan.features,
+            arFeatures: plan.arFeatures,
           })),
         },
       },
@@ -82,6 +82,7 @@ export class CompanyService {
         select: {
           id: true,
           name: true,
+          arName: true,
           email: true,
           companyType: true,
           insuranceTypes: true,
@@ -111,6 +112,7 @@ export class CompanyService {
       select: {
         id: true,
         name: true,
+        arName: true,
         email: true,
         companyType: true,
         insuranceTypes: true,
@@ -119,6 +121,7 @@ export class CompanyService {
           select: {
             id: true,
             features: true,
+            arFeatures: true,
             planId: true,
           },
         },
@@ -139,17 +142,18 @@ export class CompanyService {
       where: { id },
       data: {
         name: dto.name,
+        arName: dto.arName,
         logo: dto.logo,
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
-        ruleType: dto.ruleType,
         companyPlans: {
           deleteMany: {},
 
           create: dto.companyPlans.map((plan) => ({
             planId: plan.planId,
             features: plan.features,
+            arFeatures: plan.arFeatures,
           })),
         },
       },
@@ -182,6 +186,7 @@ export class CompanyService {
       },
       data: {
         features: dto.features,
+        arFeatures: dto.arFeatures,
       },
     });
   }

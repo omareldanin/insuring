@@ -15,7 +15,15 @@ export class CreatePlanDto {
   name: string;
 
   @IsString()
+  arName: string;
+
+  @IsOptional()
+  @IsString()
   hint: string;
+
+  @IsOptional()
+  @IsString()
+  arHint: string;
 
   @IsBoolean()
   recommend: boolean;
@@ -24,21 +32,38 @@ export class CreatePlanDto {
   @IsArray()
   description?: string[];
 
+  @IsOptional()
+  @IsArray()
+  arDescription?: string[];
+
   @IsEnum(InsuranceTypeEnum)
   insuranceType: InsuranceTypeEnum;
 }
+
 export class UpdatePlanDto {
   @IsOptional()
   @IsString()
   name?: string;
 
   @IsOptional()
+  @IsString()
+  arName?: string;
+
+  @IsOptional()
   @IsArray()
   description?: string[];
 
   @IsOptional()
+  @IsArray()
+  arDescription?: string[];
+
+  @IsOptional()
   @IsString()
   hint: string;
+
+  @IsOptional()
+  @IsString()
+  arHint: string;
 
   @IsOptional()
   @IsBoolean()

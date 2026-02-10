@@ -41,9 +41,12 @@ export class PlansService {
     return this.prisma.insurancePlan.create({
       data: {
         name: dto.name,
+        arName: dto.arName,
         description: dto.description,
+        arDescription: dto.arDescription,
         insuranceType: dto.insuranceType,
         hint: dto.hint,
+        arHint: dto.arHint,
         recommend: dto.recommend,
       },
     });
@@ -66,6 +69,7 @@ export class PlansService {
       },
     });
   }
+
   async findById(id: number) {
     return this.prisma.insurancePlan.findUnique({
       where: {
@@ -73,6 +77,7 @@ export class PlansService {
       },
     });
   }
+
   async update(id: number, dto: UpdatePlanDto) {
     const plan = await this.prisma.insurancePlan.findUnique({
       where: { id },
@@ -85,14 +90,18 @@ export class PlansService {
     return this.prisma.insurancePlan.update({
       where: { id },
       data: {
+        arName: dto.arName,
         name: dto.name,
         description: dto.description,
+        arDescription: dto.arDescription,
         insuranceType: dto.insuranceType,
         hint: dto.hint,
+        arHint: dto.arHint,
         recommend: dto.recommend,
       },
     });
   }
+
   async remove(id: number) {
     const plan = await this.prisma.insurancePlan.findUnique({
       where: { id },

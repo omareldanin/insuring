@@ -135,8 +135,11 @@ model Notification {
 model InsurancePlan {
   id            Int               @id @default(autoincrement())
   name          String
-  hint          String
+  arName        String?
+  hint          String?
+  arHint        String?
   description   String[]
+  arDescription String[]
   recommend     Boolean           @default(false)
   insuranceType InsuranceTypeEnum
   createdAt     DateTime          @default(now())
@@ -152,6 +155,7 @@ model InsurancePlan {
 model InsuranceCompany {
   id             Int                 @id @default(autoincrement())
   name           String              @unique
+  arName         String?
   logo           String?
   email          String              @unique
   ruleType       CarRuleType         @default(RANGE)
@@ -166,13 +170,14 @@ model InsuranceCompany {
 }
 
 model CompanyPlan {
-  id        Int              @id @default(autoincrement())
-  companyId Int
-  planId    Int
-  company   InsuranceCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  plan      InsurancePlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
-  features  String[]         @default(["third party liability", "stantard support"])
-  createdAt DateTime         @default(now())
+  id         Int              @id @default(autoincrement())
+  companyId  Int
+  planId     Int
+  company    InsuranceCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan       InsurancePlan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+  features   String[]         @default(["third party liability", "stantard support"])
+  arFeatures String[]         @default(["third party liability", "stantard support"])
+  createdAt  DateTime         @default(now())
 
   @@unique([companyId, planId])
 }

@@ -355,6 +355,7 @@ export class RulesService {
               },
               select: {
                 features: true,
+                arFeatures: true,
               },
             },
           },
@@ -389,7 +390,7 @@ export class RulesService {
               logo: true,
               companyPlans: {
                 where: { planId },
-                select: { features: true },
+                select: { features: true, arFeatures: true },
               },
             },
           },
@@ -450,6 +451,7 @@ export class RulesService {
               },
               select: {
                 features: true,
+                arFeatures: true,
               },
             },
           },
@@ -504,6 +506,7 @@ export class RulesService {
               },
               select: {
                 features: true,
+                arFeatures: true,
               },
             },
           },
