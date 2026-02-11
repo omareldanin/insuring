@@ -481,10 +481,6 @@ export class RulesService {
         type: dto.type,
         OR: [
           {
-            from: { lte: dto.price },
-            to: { gte: dto.price },
-          },
-          {
             carGroups: {
               some: {
                 makeId: dto.makeId,
@@ -493,11 +489,24 @@ export class RulesService {
               },
             },
           },
+          {
+            from: { lte: dto.price },
+            to: { gte: dto.price },
+          },
         ],
       },
       select: {
         id: true,
         persitage: true,
+        from: true,
+        to: true,
+        carGroups: {
+          where: {
+            makeId: dto.makeId,
+            modelId: dto.modelId,
+            year: dto.year,
+          },
+        },
         insuranceCompany: {
           select: {
             id: true,
@@ -516,11 +525,43 @@ export class RulesService {
         },
       },
     });
+    const rulesByCompany = new Map<number, typeof rules>();
+
+    for (const rule of rules) {
+      const companyId = rule.insuranceCompany.id;
+
+      if (!rulesByCompany.has(companyId)) {
+        rulesByCompany.set(companyId, []);
+      }
+
+      rulesByCompany.get(companyId)!.push(rule);
+    }
+
+    const finalRules: typeof rules = [];
+
+    for (const [, companyRules] of rulesByCompany) {
+      const carSpecific = companyRules.filter(
+        (r) => r.carGroups && r.carGroups.length > 0,
+      );
+
+      if (carSpecific.length > 0) {
+        // ✅ car rules override ranges for THIS company
+        finalRules.push(...carSpecific);
+      } else {
+        // ✅ fallback to price range rules
+        finalRules.push(
+          ...companyRules.filter(
+            (r) => r.from <= dto.price && r.to >= dto.price,
+          ),
+        );
+      }
+    }
 
     return {
-      result: rules.map((r) => ({
+      result: finalRules.map((r) => ({
         ...r,
         finalPrice: (dto.price * r.persitage) / 100,
+        carGroups: [],
       })),
     };
   }

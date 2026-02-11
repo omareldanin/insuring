@@ -133,21 +133,22 @@ model Notification {
 }
 
 model InsurancePlan {
-  id            Int               @id @default(autoincrement())
-  name          String
-  arName        String?
-  hint          String?
-  arHint        String?
-  description   String[]
-  arDescription String[]
-  recommend     Boolean           @default(false)
-  insuranceType InsuranceTypeEnum
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  companyPlan   CompanyPlan[]
-  healthRules   HealthRules[]
-  lifeRules     LifeRules[]
-  carRules      CarRules[]
+  id              Int               @id @default(autoincrement())
+  name            String
+  arName          String?
+  hint            String?
+  arHint          String?
+  description     String[]
+  arDescription   String[]
+  recommend       Boolean           @default(false)
+  forHealthGroups Boolean           @default(false)
+  insuranceType   InsuranceTypeEnum
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  companyPlan     CompanyPlan[]
+  healthRules     HealthRules[]
+  lifeRules       LifeRules[]
+  carRules        CarRules[]
 
   @@unique([name, insuranceType])
 }
