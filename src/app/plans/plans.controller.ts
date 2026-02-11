@@ -30,8 +30,11 @@ export class PlansController {
 
   // @UseGuards(JwtAuthGuard)
   @Get("/getAll")
-  findAll(@Query("type") type: InsuranceTypeEnum) {
-    return this.service.findAll(type);
+  findAll(
+    @Query("type") type: InsuranceTypeEnum,
+    @Query("forHealthGroups") forHealthGroups: boolean,
+  ) {
+    return this.service.findAll(type, forHealthGroups);
   }
 
   @UseGuards(JwtAuthGuard)

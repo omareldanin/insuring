@@ -2,11 +2,8 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
-  IsInt,
-  IsNumber,
   IsOptional,
   IsString,
-  Min,
 } from "class-validator";
 import { InsuranceTypeEnum } from "@prisma/client";
 
@@ -27,6 +24,9 @@ export class CreatePlanDto {
 
   @IsBoolean()
   recommend: boolean;
+
+  @IsBoolean()
+  forHealthGroups: boolean;
 
   @IsOptional()
   @IsArray()
@@ -60,6 +60,9 @@ export class UpdatePlanDto {
   @IsOptional()
   @IsString()
   hint: string;
+
+  @IsBoolean()
+  forHealthGroups: boolean;
 
   @IsOptional()
   @IsString()

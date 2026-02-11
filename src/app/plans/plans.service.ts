@@ -45,6 +45,7 @@ export class PlansService {
         description: dto.description,
         arDescription: dto.arDescription,
         insuranceType: dto.insuranceType,
+        forHealthGroups: dto.forHealthGroups,
         hint: dto.hint,
         arHint: dto.arHint,
         recommend: dto.recommend,
@@ -52,20 +53,23 @@ export class PlansService {
     });
   }
 
-  async findAll(type?: InsuranceTypeEnum) {
+  async findAll(type?: InsuranceTypeEnum, forHealthGroups?: boolean) {
     const results = await this.prisma.insurancePlan.findMany({
       where: {
         insuranceType: type || undefined,
+        forHealthGroups: forHealthGroups,
       },
+      orderBy: [{ id: "asc" }],
     });
 
     return { results };
   }
 
-  async findByType(type: InsuranceTypeEnum) {
+  async findByType(type: InsuranceTypeEnum, forHealthGroups: boolean) {
     return this.prisma.insurancePlan.findMany({
       where: {
         insuranceType: type,
+        forHealthGroups: forHealthGroups,
       },
     });
   }
@@ -98,6 +102,7 @@ export class PlansService {
         hint: dto.hint,
         arHint: dto.arHint,
         recommend: dto.recommend,
+        forHealthGroups: dto.forHealthGroups,
       },
     });
   }
