@@ -12,6 +12,7 @@ import { PlansModule } from "./app/plans/plans.module";
 import { CarsModule } from "./app/cars/cars.module";
 import { CompanyModule } from "./app/company/company.module";
 import { RulesModule } from "./app/rules/rules.module";
+import { DocumentModule } from "./app/document/document.module";
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { RulesModule } from "./app/rules/rules.module";
     CarsModule,
     CompanyModule,
     RulesModule,
+    DocumentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

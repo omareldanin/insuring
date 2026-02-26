@@ -350,6 +350,7 @@ export class RulesService {
             name: true,
             logo: true,
             arName: true,
+            link: true,
             companyPlans: {
               where: {
                 planId: dto.planId,
@@ -383,6 +384,7 @@ export class RulesService {
           to: { gte: member.age },
         },
         select: {
+          id: true,
           price: true,
           insuranceCompany: {
             select: {
@@ -390,6 +392,7 @@ export class RulesService {
               name: true,
               arName: true,
               logo: true,
+              link: true,
               companyPlans: {
                 where: { planId },
                 select: { features: true, arFeatures: true },
@@ -413,6 +416,7 @@ export class RulesService {
         const companyOffer = offersByCompany.get(companyId);
 
         companyOffer.members.push({
+          id: rule.id,
           age: member.age,
           gender: member.gender,
           price: rule.price,
@@ -447,6 +451,7 @@ export class RulesService {
             id: true,
             name: true,
             logo: true,
+            link: true,
             companyPlans: {
               where: {
                 planId: dto.planId,

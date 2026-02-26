@@ -30,6 +30,12 @@ enum InsuranceTypeEnum {
   LIFE
 }
 
+enum InsuranceHealthTypeEnum {
+  INDIVIDUAL
+  FAMILY
+  GROUP
+}
+
 enum CarTypeEnum {
   used
   new
@@ -46,30 +52,31 @@ enum CarRuleType {
 }
 
 model User {
-  id             Int              @id @default(autoincrement())
-  phone          String           @unique
-  name           String
-  email          String           @unique
-  gender         UserGender
-  avatar         String?
-  fcm            String[]
-  password       String
-  refresh_tokens String[]
-  role           UserRole
-  notifications  Notification[]
-  deleted        Boolean          @default(false)
-  active         Boolean          @default(true)
-  verified       Boolean          @default(false)
-  deletedAt      DateTime?
-  birthDate      DateTime?
+  id                 Int                 @id @default(autoincrement())
+  phone              String              @unique
+  name               String
+  email              String              @unique
+  gender             UserGender
+  avatar             String?
+  fcm                String[]
+  password           String
+  refresh_tokens     String[]
+  role               UserRole
+  notifications      Notification[]
+  deleted            Boolean             @default(false)
+  active             Boolean             @default(true)
+  verified           Boolean             @default(false)
+  deletedAt          DateTime?
+  birthDate          DateTime?
   // relations---------------------------------------------------------------------//
-  partner        Partner?
-  admin          Admin?
-  passwordReset  PasswordReset[]
-  sessions       RefreshSession[]
+  partner            Partner?
+  admin              Admin?
+  passwordReset      PasswordReset[]
+  sessions           RefreshSession[]
   // --- OTHER ---------------------------------------------------------------------//
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  insuranceDocuments InsuranceDocument[]
 }
 
 model RefreshSession {
@@ -133,41 +140,45 @@ model Notification {
 }
 
 model InsurancePlan {
-  id              Int               @id @default(autoincrement())
-  name            String
-  arName          String?
-  hint            String?
-  arHint          String?
-  description     String[]
-  arDescription   String[]
-  recommend       Boolean           @default(false)
-  forHealthGroups Boolean           @default(false)
-  insuranceType   InsuranceTypeEnum
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  companyPlan     CompanyPlan[]
-  healthRules     HealthRules[]
-  lifeRules       LifeRules[]
-  carRules        CarRules[]
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  arName             String?
+  hint               String?
+  arHint             String?
+  description        String[]
+  arDescription      String[]
+  recommend          Boolean             @default(false)
+  forHealthGroups    Boolean             @default(false)
+  insuranceType      InsuranceTypeEnum
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  companyPlan        CompanyPlan[]
+  healthRules        HealthRules[]
+  lifeRules          LifeRules[]
+  carRules           CarRules[]
+  insuranceDocuments InsuranceDocument[]
 
   @@unique([name, insuranceType])
 }
 
 model InsuranceCompany {
-  id             Int                 @id @default(autoincrement())
-  name           String              @unique
-  arName         String?
-  logo           String?
-  email          String              @unique
-  ruleType       CarRuleType         @default(RANGE)
-  companyType    CompanyTypeEnum
-  insuranceTypes InsuranceTypeEnum[]
-  companyPlans   CompanyPlan[]
-  healthRules    HealthRules[]
-  lifeRules      LifeRules[]
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  carRules       CarRules[]
+  id                 Int                 @id @default(autoincrement())
+  name               String              @unique
+  arName             String?
+  logo               String?
+  link               String?
+  email              String              @unique
+  ruleType           CarRuleType         @default(RANGE)
+  companyType        CompanyTypeEnum
+  insuranceTypes     InsuranceTypeEnum[]
+  companyPlans       CompanyPlan[]
+  healthRules        HealthRules[]
+  lifeRules          LifeRules[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  carRules           CarRules[]
+  insuranceDocuments InsuranceDocument[]
+  // insuranceDocumentRequirements InsuranceDocumentRequirement[]
 }
 
 model CompanyPlan {
@@ -197,7 +208,7 @@ model CarModel {
   name           String
   normalizedName String
   makeId         Int
-  make           CarMake        @relation(fields: [makeId], references: [id], onDelete: Cascade)
+  make           CarMake        @relation(fields: [makeId], references: [id])
   years          CarYear[]
   createdAt      DateTime       @default(now())
   carRuleGroups  CarRuleGroup[]
@@ -206,13 +217,14 @@ model CarModel {
 }
 
 model CarYear {
-  id            Int            @id @default(autoincrement())
-  year          Int
-  minimumPrice  Int?           @default(0)
-  modelId       Int
-  model         CarModel       @relation(fields: [modelId], references: [id], onDelete: Cascade)
-  createdAt     DateTime       @default(now())
-  carRuleGroups CarRuleGroup[]
+  id                        Int                        @id @default(autoincrement())
+  year                      Int
+  minimumPrice              Int?                       @default(0)
+  modelId                   Int
+  model                     CarModel                   @relation(fields: [modelId], references: [id])
+  createdAt                 DateTime                   @default(now())
+  carRuleGroups             CarRuleGroup[]
+  insuranceDocumentCarInfos InsuranceDocumentCarInfo[]
 
   @@unique([year, modelId])
 }
@@ -230,6 +242,7 @@ model HealthRules {
   plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
   insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
   insuranceCompanyId Int?
+  members            Member[]
 }
 
 model LifeRules {
@@ -241,10 +254,11 @@ model LifeRules {
   persitage     Float
   createdAt     DateTime          @default(now())
 
-  planId             Int?
-  plan               InsurancePlan?    @relation(fields: [planId], references: [id], onDelete: Cascade)
-  insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
-  insuranceCompanyId Int?
+  planId                     Int?
+  plan                       InsurancePlan?              @relation(fields: [planId], references: [id], onDelete: Cascade)
+  insuranceCompany           InsuranceCompany?           @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
+  insuranceCompanyId         Int?
+  insuranceDocumentLifeInfos InsuranceDocumentLifeInfo[]
 }
 
 model CarRules {
@@ -268,7 +282,8 @@ model CarRules {
   insuranceCompanyId Int?
   insuranceCompany   InsuranceCompany? @relation(fields: [insuranceCompanyId], references: [id], onDelete: Cascade)
 
-  carGroups CarRuleGroup[]
+  carGroups                 CarRuleGroup[]
+  insuranceDocumentCarRules InsuranceDocumentCarInfo[]
 }
 
 model CarRuleGroup {
@@ -280,7 +295,7 @@ model CarRuleGroup {
 
   makeId  Int
   modelId Int?
-  year    Int? // 👈 store year directly (simpler than CarYear join)
+  year    Int?
 
   make      CarMake   @relation(fields: [makeId], references: [id])
   model     CarModel? @relation(fields: [modelId], references: [id])
@@ -289,4 +304,95 @@ model CarRuleGroup {
 
   @@index([groupName])
   @@index([makeId, modelId, year])
+}
+
+model InsuranceDocument {
+  id            Int                          @id @default(autoincrement())
+  insuranceType InsuranceTypeEnum
+  startDate     DateTime?
+  endDate       DateTime?
+  confirmed     Boolean                      @default(false)
+  paid          Boolean                      @default(false)
+  paidKey       String?
+  //relations----------------------------
+  userId        Int
+  user          User                         @relation(fields: [userId], references: [id], onDelete: NoAction)
+  planId        Int
+  plan          InsurancePlan                @relation(fields: [planId], references: [id], onDelete: NoAction)
+  companyId     Int
+  company       InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: NoAction)
+  //other---------------------------------
+  createdAt     DateTime                     @default(now())
+  updatedAt     DateTime                     @updatedAt
+  carInfo       InsuranceDocumentCarInfo?
+  lifeInfo      InsuranceDocumentLifeInfo?
+  healthInfo    InsuranceDocumentHealthInfo?
+
+  @@index([userId, companyId])
+}
+
+model InsuranceDocumentCarInfo {
+  id Int @id @default(autoincrement())
+
+  persitage    Float
+  price        Int
+  finalPrice   Int
+  idImage      String
+  carLicence   String
+  driveLicence String
+
+  carYearId Int?
+  carYear   CarYear? @relation(fields: [carYearId], references: [id])
+
+  ruleId Int
+  rule   CarRules @relation(fields: [ruleId], references: [id], onDelete: NoAction)
+
+  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
+  insuranceDocumentId Int                @unique
+}
+
+model InsuranceDocumentLifeInfo {
+  id Int @id @default(autoincrement())
+
+  persitage  Float
+  price      Int
+  finalPrice Int
+  idImage    String
+
+  ruleId Int
+  rule   LifeRules @relation(fields: [ruleId], references: [id], onDelete: NoAction)
+
+  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
+  insuranceDocumentId Int                @unique
+}
+
+model InsuranceDocumentHealthInfo {
+  id Int @id @default(autoincrement())
+
+  type       InsuranceHealthTypeEnum
+  totalPrice Int
+
+  //for group healthInsurance
+  groupName                 String?
+  companyTaxRegister        String?
+  companyCommercialRegister String?
+
+  members Member[]
+
+  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
+  insuranceDocumentId Int?               @unique
+}
+
+model Member {
+  id                            Int                          @id @default(autoincrement())
+  age                           Int
+  gender                        UserGender
+  price                         Int
+  image                         String
+  idImage                       String
+  insuranceDocumentHealthInfo   InsuranceDocumentHealthInfo? @relation(fields: [insuranceDocumentHealthInfoId], references: [id])
+  insuranceDocumentHealthInfoId Int?
+
+  ruleId Int
+  rule   HealthRules @relation(fields: [ruleId], references: [id], onDelete: NoAction)
 }
