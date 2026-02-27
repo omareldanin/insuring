@@ -237,24 +237,25 @@ model CarRuleGroup {
 }
 
 model InsuranceDocument {
-  id            Int                          @id @default(autoincrement())
-  insuranceType InsuranceTypeEnum
-  startDate     DateTime?
-  endDate       DateTime?
-  confirmed     Boolean                      @default(false)
-  paid          Boolean                      @default(false)
-  paidKey       String?
-  userId        Int
-  planId        Int
-  companyId     Int
-  createdAt     DateTime                     @default(now())
-  updatedAt     DateTime                     @updatedAt
-  company       InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: NoAction)
-  plan          InsurancePlan                @relation(fields: [planId], references: [id], onDelete: NoAction)
-  user          User                         @relation(fields: [userId], references: [id], onDelete: NoAction)
-  carInfo       InsuranceDocumentCarInfo?
-  healthInfo    InsuranceDocumentHealthInfo?
-  lifeInfo      InsuranceDocumentLifeInfo?
+  id             Int                          @id @default(autoincrement())
+  insuranceType  InsuranceTypeEnum
+  startDate      DateTime?
+  endDate        DateTime?
+  confirmed      Boolean                      @default(false)
+  paid           Boolean                      @default(false)
+  paidKey        String?
+  documentNumber String?
+  userId         Int
+  planId         Int
+  companyId      Int
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  company        InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: NoAction)
+  plan           InsurancePlan                @relation(fields: [planId], references: [id], onDelete: NoAction)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: NoAction)
+  carInfo        InsuranceDocumentCarInfo?
+  healthInfo     InsuranceDocumentHealthInfo?
+  lifeInfo       InsuranceDocumentLifeInfo?
 
   @@index([userId, companyId])
 }

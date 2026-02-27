@@ -17,6 +17,7 @@ export const documentSelect = {
   confirmed: true,
   paid: true,
   paidKey: true,
+  documentNumber: true,
   createdAt: true,
   user: {
     select: {
