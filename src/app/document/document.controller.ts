@@ -370,6 +370,7 @@ export class DocumentController {
     return this.service.getOne(id);
   }
 
+  @UseInterceptors(NoFilesInterceptor())
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
   update(@Param("id", ParseIntPipe) id: number, @Body() body: any) {
