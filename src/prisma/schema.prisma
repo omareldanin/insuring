@@ -256,12 +256,36 @@ model InsuranceDocument {
   carInfo        InsuranceDocumentCarInfo?
   healthInfo     InsuranceDocumentHealthInfo?
   lifeInfo       InsuranceDocumentLifeInfo?
+  renewRequests  InsuranceDocumentRenew[]
+  refunds        Refund[]
 
   @@index([userId, companyId])
 }
 
 model InsuranceDocumentRenew {
+  id        Int     @id @default(autoincrement())
+  confirmed Boolean @default(false)
+  paid      Boolean @default(false)
+  paidKey   String?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
+  insuranceDocumentId Int?
+}
+
+model Refund {
   id Int @id @default(autoincrement())
+
+  status       String @default("processing")
+  carNumber    String
+  idImage      String
+  carLicence   String
+  driveLicence String
+  description  String
+
+  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
+  insuranceDocumentId Int?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

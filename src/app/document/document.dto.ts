@@ -1,6 +1,7 @@
 import { InsuranceHealthTypeEnum, UserGender } from "@prisma/client";
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsInt,
   IsNotEmpty,
@@ -200,4 +201,56 @@ class FamilyMemberDto {
   @IsString()
   @IsOptional()
   avatar: string;
+}
+
+export class CreateRenewDto {
+  @IsInt()
+  documentId: number;
+
+  @IsOptional()
+  @IsString()
+  paidKey?: string;
+}
+
+export class UpdateRenewDto {
+  @IsOptional()
+  @IsBoolean()
+  confirmed?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  paid?: boolean;
+
+  @IsOptional()
+  @IsString()
+  paidKey?: string;
+}
+
+export class CreateRefundDto {
+  @IsInt()
+  documentId: number;
+
+  @IsString()
+  carNumber: string;
+
+  @IsString()
+  description: string;
+
+  idImage?: string;
+  carLicence?: string;
+  driveLicence?: string;
+}
+
+export class UpdateRefundDto {
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  idImage?: string;
+  carLicence?: string;
+  driveLicence?: string;
 }

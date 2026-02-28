@@ -9,7 +9,11 @@ import {
   CreateGroupHealthDocDto,
   createHealthDocumentDto,
   createLifeDocumentDto,
+  CreateRefundDto,
+  CreateRenewDto,
   documentSelect,
+  UpdateRefundDto,
+  UpdateRenewDto,
 } from "./document.dto";
 import { InsuranceTypeEnum, Prisma } from "@prisma/client";
 
@@ -514,5 +518,152 @@ export class DocumentService {
         },
       });
     });
+  }
+
+  async createRenew(dto: CreateRenewDto) {
+    const document = await this.prisma.insuranceDocument.findUnique({
+      where: { id: dto.documentId },
+    });
+
+    if (!document) {
+      throw new NotFoundException("Document not found");
+    }
+
+    return this.prisma.insuranceDocumentRenew.create({
+      data: {
+        insuranceDocumentId: dto.documentId,
+        paidKey: dto.paidKey,
+      },
+    });
+  }
+
+  async updateRenew(id: number, dto: UpdateRenewDto) {
+    return this.prisma.insuranceDocumentRenew.update({
+      where: { id },
+      data: dto,
+    });
+  }
+
+  async createRefund(dto: CreateRefundDto) {
+    const document = await this.prisma.insuranceDocument.findUnique({
+      where: { id: dto.documentId },
+    });
+
+    if (!document) {
+      throw new NotFoundException("Document not found");
+    }
+
+    return this.prisma.refund.create({
+      data: {
+        insuranceDocumentId: dto.documentId,
+        carNumber: dto.carNumber,
+        description: dto.description,
+        idImage: dto.idImage,
+        carLicence: dto.carLicence,
+        driveLicence: dto.driveLicence,
+      },
+    });
+  }
+
+  async updateRefund(id: number, dto: UpdateRefundDto) {
+    return this.prisma.refund.update({
+      where: { id },
+      data: {
+        status: dto.status,
+        description: dto.description,
+
+        ...(dto.idImage && { idImage: dto.idImage }),
+        ...(dto.carLicence && { carLicence: dto.carLicence }),
+        ...(dto.driveLicence && { driveLicence: dto.driveLicence }),
+      },
+    });
+  }
+
+  async getAllRenewRequests(query: {
+    page?: number;
+    size?: number;
+    userId?: number;
+    documentId?: number;
+    confirmed?: boolean;
+    paid?: boolean;
+  }) {
+    const page = Number(query.page) || 1;
+    const size = Number(query.size) || 10;
+
+    const where: Prisma.InsuranceDocumentRenewWhereInput = {
+      insuranceDocumentId: query.documentId,
+      confirmed: query.confirmed,
+      paid: query.paid,
+      insuranceDocument: {
+        userId: query.userId,
+      },
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.insuranceDocumentRenew.findMany({
+        where,
+        skip: (page - 1) * size,
+        take: size,
+        orderBy: { createdAt: "desc" },
+        include: {
+          insuranceDocument: {
+            select: documentSelect,
+          },
+        },
+      }),
+
+      this.prisma.insuranceDocumentRenew.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
+  }
+
+  async getAllRefundRequests(query: {
+    page?: number;
+    size?: number;
+    userId?: number;
+    documentId?: number;
+    status?: string;
+  }) {
+    const page = Number(query.page) || 1;
+    const size = Number(query.size) || 10;
+
+    const where: Prisma.RefundWhereInput = {
+      insuranceDocumentId: query.documentId,
+      status: query.status,
+      insuranceDocument: {
+        userId: query.userId,
+      },
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.refund.findMany({
+        where,
+        skip: (page - 1) * size,
+        take: size,
+        orderBy: { createdAt: "desc" },
+        include: {
+          insuranceDocument: {
+            select: documentSelect,
+          },
+        },
+      }),
+
+      this.prisma.refund.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      size,
+      totalPages: Math.ceil(total / size),
+    };
   }
 }

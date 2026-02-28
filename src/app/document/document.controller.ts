@@ -23,6 +23,10 @@ import {
   CreateGroupHealthDocDto,
   createHealthDocumentDto,
   createLifeDocumentDto,
+  CreateRefundDto,
+  CreateRenewDto,
+  UpdateRefundDto,
+  UpdateRenewDto,
 } from "./document.dto";
 import { InsuranceTypeEnum } from "@prisma/client";
 
@@ -203,6 +207,74 @@ export class DocumentController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post("renew")
+  createRenew(@Body() dto: CreateRenewDto) {
+    return this.service.createRenew(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("renew/:id")
+  updateRenew(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() dto: UpdateRenewDto,
+  ) {
+    return this.service.updateRenew(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("refund")
+  @UploadFieldsInterceptor(
+    [
+      { name: "idImage", maxCount: 1 },
+      { name: "carLicence", maxCount: 1 },
+      { name: "driveLicence", maxCount: 1 },
+    ],
+    "refund",
+  )
+  createRefund(@Body() body: CreateRefundDto, @UploadedFiles() files) {
+    body.idImage = files.idImage?.[0]
+      ? `uploads/refund/${files.idImage[0].filename}`
+      : undefined;
+
+    body.carLicence = files.carLicence?.[0]
+      ? `uploads/refund/${files.carLicence[0].filename}`
+      : undefined;
+
+    body.driveLicence = files.driveLicence?.[0]
+      ? `uploads/refund/${files.driveLicence[0].filename}`
+      : undefined;
+
+    return this.service.createRefund(body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("refund/:id")
+  @UploadFieldsInterceptor(
+    [
+      { name: "idImage", maxCount: 1 },
+      { name: "carLicence", maxCount: 1 },
+      { name: "driveLicence", maxCount: 1 },
+    ],
+    "refund",
+  )
+  updateRefund(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: UpdateRefundDto,
+    @UploadedFiles() files,
+  ) {
+    if (files.idImage)
+      body.idImage = `uploads/refund/${files.idImage[0].filename}`;
+
+    if (files.carLicence)
+      body.carLicence = `uploads/refund/${files.carLicence[0].filename}`;
+
+    if (files.driveLicence)
+      body.driveLicence = `uploads/refund/${files.driveLicence[0].filename}`;
+
+    return this.service.updateRefund(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get("/getAll")
   async getAll(
     @Req() req,
@@ -228,6 +300,57 @@ export class DocumentController {
       userId: userId ? Number(userId) : undefined,
       confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
       insuranceType,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("renew")
+  getAllRenewRequests(
+    @Req() req,
+    @Query("page") page?: string,
+    @Query("size") size?: string,
+    @Query("documentId") documentId?: string,
+    @Query("confirmed") confirmed?: string,
+    @Query("paid") paid?: string,
+    @Query("userId") userId?: string,
+  ) {
+    const loggedInUser = req.user as LoggedInUserType;
+
+    if (loggedInUser.role !== "ADMIN") {
+      userId = loggedInUser.id + "";
+    }
+
+    return this.service.getAllRenewRequests({
+      page: page ? Number(page) : undefined,
+      size: size ? Number(size) : undefined,
+      documentId: documentId ? Number(documentId) : undefined,
+      userId: userId ? Number(userId) : undefined,
+      confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
+      paid: paid !== undefined ? paid === "true" : undefined,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("refund")
+  getAllRefundRequests(
+    @Req() req,
+    @Query("page") page?: string,
+    @Query("size") size?: string,
+    @Query("documentId") documentId?: string,
+    @Query("status") status?: string,
+    @Query("userId") userId?: string,
+  ) {
+    const loggedInUser = req.user as LoggedInUserType;
+
+    if (loggedInUser.role !== "ADMIN") {
+      userId = loggedInUser.id + "";
+    }
+    return this.service.getAllRefundRequests({
+      page: page ? Number(page) : undefined,
+      size: size ? Number(size) : undefined,
+      documentId: documentId ? Number(documentId) : undefined,
+      userId: userId ? Number(userId) : undefined,
+      status,
     });
   }
 
