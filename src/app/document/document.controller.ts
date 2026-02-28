@@ -39,22 +39,30 @@ export class DocumentController {
     let companyTaxRegister: string | undefined;
     let companyCommercialRegister: string | undefined;
 
-    // 1️⃣ extract members fields
-    Object.keys(body).forEach((key) => {
-      const match = key.match(/^members\[(\d+)]\[(\w+)]$/);
-      if (!match) return;
+    // ✅ extract members safely
+    if (Array.isArray(body.members)) {
+      body.members.forEach((member, index) => {
+        members[index] = {
+          age: Number(member.age),
+          gender: member.gender,
+        };
+      });
+    } else {
+      Object.keys(body).forEach((key) => {
+        const match = key.match(/^members\[(\d+)]\[(\w+)]$/);
+        if (!match) return;
 
-      const index = Number(match[1]);
-      const field = match[2];
+        const index = Number(match[1]);
+        const field = match[2];
 
-      if (!members[index]) members[index] = {};
+        if (!members[index]) members[index] = {};
 
-      members[index][field] = body[key];
-    });
+        members[index][field] = field === "age" ? Number(body[key]) : body[key];
+      });
+    }
 
-    // 2️⃣ attach files
+    // ✅ attach files
     for (const file of files) {
-      // company files
       if (file.fieldname === "companyTaxRegister") {
         companyTaxRegister = `uploads/${folder}/${file.filename}`;
         continue;
@@ -65,7 +73,6 @@ export class DocumentController {
         continue;
       }
 
-      // member files
       const match = file.fieldname.match(/^members\[(\d+)]\[(\w+)]$/);
       if (!match) continue;
 
@@ -76,8 +83,8 @@ export class DocumentController {
 
       members[index][field] = `uploads/${folder}/${file.filename}`;
     }
+    const normalizedMembers = members.filter(Boolean);
 
-    // 3️⃣ return DTO
     return {
       planId: Number(body.planId),
       companyId: Number(body.companyId),
@@ -88,7 +95,7 @@ export class DocumentController {
       companyTaxRegister,
       companyCommercialRegister,
 
-      members,
+      members: normalizedMembers,
     };
   }
 
@@ -222,6 +229,12 @@ export class DocumentController {
       confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
       insuranceType,
     });
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get("byDocumentNumber/:id")
+  getOneByDocumentNumber(@Param("id") id: string) {
+    return this.service.getOneByDocumentNumber(id);
   }
 
   @UseGuards(JwtAuthGuard)

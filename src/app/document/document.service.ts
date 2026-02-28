@@ -279,6 +279,19 @@ export class DocumentService {
     return document;
   }
 
+  async getOneByDocumentNumber(documentNumber: string) {
+    const document = await this.prisma.insuranceDocument.findFirst({
+      where: { documentNumber },
+      select: documentSelect,
+    });
+
+    if (!document) {
+      throw new NotFoundException("Document not found");
+    }
+
+    return document;
+  }
+
   async updateDocument(
     id: number,
     data:
