@@ -540,7 +540,11 @@ export class DocumentService {
   async updateRenew(id: number, dto: UpdateRenewDto) {
     return this.prisma.insuranceDocumentRenew.update({
       where: { id },
-      data: dto,
+      data: {
+        confirmed: dto.confirmed,
+        paidKey: dto.paidKey,
+        paid: dto.paidKey ? true : undefined,
+      },
     });
   }
 

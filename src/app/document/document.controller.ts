@@ -10,6 +10,7 @@ import {
   Req,
   UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { DocumentService } from "./document.service";
 import {
@@ -29,6 +30,7 @@ import {
   UpdateRenewDto,
 } from "./document.dto";
 import { InsuranceTypeEnum } from "@prisma/client";
+import { NoFilesInterceptor } from "@nestjs/platform-express";
 
 @Controller("document")
 export class DocumentController {
@@ -206,12 +208,14 @@ export class DocumentController {
     return this.service.createIndividualHealthDocument(body, loggedInUser.id);
   }
 
+  @UseInterceptors(NoFilesInterceptor())
   @UseGuards(JwtAuthGuard)
   @Post("renew")
   createRenew(@Body() dto: CreateRenewDto) {
     return this.service.createRenew(dto);
   }
 
+  @UseInterceptors(NoFilesInterceptor())
   @UseGuards(JwtAuthGuard)
   @Patch("renew/:id")
   updateRenew(
