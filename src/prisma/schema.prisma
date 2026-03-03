@@ -297,6 +297,7 @@ model InsuranceDocument {
   refunds        Refund[]
   offer          Offers?                      @relation(fields: [offerId], references: [id])
   offerId        Int?
+  discount       Int?
 
   @@index([userId, companyId])
 }

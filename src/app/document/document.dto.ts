@@ -32,6 +32,7 @@ export const documentSelect = {
       id: true,
       name: true,
       email: true,
+      logo: true,
       link: true,
     },
   },
