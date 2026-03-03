@@ -36,6 +36,10 @@ export class GetOffersDto {
   price: number;
 
   @IsOptional()
+  @IsInt()
+  offerId: number;
+
+  @IsOptional()
   @IsEnum(CompanyTypeEnum)
   companyType: CompanyTypeEnum;
 }
@@ -60,6 +64,10 @@ export class GetFamilyOffersDto {
   @IsArray()
   @IsNotEmpty()
   members: FamilyMemberDto[];
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 }
 
 class HealthRuleItemDto {
@@ -87,6 +95,10 @@ class HealthRuleItemDto {
 
   @IsInt()
   insuranceCompanyId: number;
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 }
 
 export class CreateHealthRulesDto {
@@ -216,6 +228,10 @@ export class GetCarOffersDto {
 
   @IsInt()
   planId: number;
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 
   @IsOptional()
   @IsEnum(CompanyTypeEnum)

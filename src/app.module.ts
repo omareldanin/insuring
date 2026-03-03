@@ -13,6 +13,7 @@ import { CarsModule } from "./app/cars/cars.module";
 import { CompanyModule } from "./app/company/company.module";
 import { RulesModule } from "./app/rules/rules.module";
 import { DocumentModule } from "./app/document/document.module";
+import { OffersModule } from "./app/offers/offers.module";
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { DocumentModule } from "./app/document/document.module";
     CompanyModule,
     RulesModule,
     DocumentModule,
+    OffersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

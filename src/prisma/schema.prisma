@@ -7,6 +7,44 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  ADMIN
+  CLIENT
+  PARTNER
+}
+
+enum UserGender {
+  male
+  female
+}
+
+enum InsuranceTypeEnum {
+  CAR
+  HEALTH
+  LIFE
+}
+
+enum InsuranceHealthTypeEnum {
+  INDIVIDUAL
+  FAMILY
+  GROUP
+}
+
+enum CarTypeEnum {
+  used
+  new
+}
+
+enum CompanyTypeEnum {
+  SOLIDARITY
+  COMMERCIAL
+}
+
+enum CarRuleType {
+  RANGE
+  GROUP
+}
+
 model User {
   id                 Int                 @id @default(autoincrement())
   phone              String              @unique
@@ -116,7 +154,6 @@ model InsuranceCompany {
   insuranceTypes     InsuranceTypeEnum[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-  link2              String?
   carRules           CarRules[]
   companyPlans       CompanyPlan[]
   healthRules        HealthRules[]
@@ -258,6 +295,8 @@ model InsuranceDocument {
   lifeInfo       InsuranceDocumentLifeInfo?
   renewRequests  InsuranceDocumentRenew[]
   refunds        Refund[]
+  offer          Offers?                      @relation(fields: [offerId], references: [id])
+  offerId        Int?
 
   @@index([userId, companyId])
 }
@@ -344,40 +383,12 @@ model Member {
   rule                          HealthRules                  @relation(fields: [ruleId], references: [id], onDelete: NoAction)
 }
 
-enum UserRole {
-  ADMIN
-  CLIENT
-  PARTNER
-}
-
-enum UserGender {
-  male
-  female
-}
-
-enum InsuranceTypeEnum {
-  CAR
-  HEALTH
-  LIFE
-}
-
-enum InsuranceHealthTypeEnum {
-  INDIVIDUAL
-  FAMILY
-  GROUP
-}
-
-enum CarTypeEnum {
-  used
-  new
-}
-
-enum CompanyTypeEnum {
-  SOLIDARITY
-  COMMERCIAL
-}
-
-enum CarRuleType {
-  RANGE
-  GROUP
+model Offers {
+  id             Int                 @id @default(autoincrement())
+  insuranceTypes InsuranceTypeEnum[]
+  discount       Int                 @default(0)
+  ordersCount    Int                 @default(0)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  documents      InsuranceDocument[]
 }

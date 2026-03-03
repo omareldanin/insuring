@@ -111,6 +111,10 @@ export class createCarDocumentDto {
   @IsString()
   @IsOptional()
   carLicenseFile: string;
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 }
 
 export class createLifeDocumentDto {

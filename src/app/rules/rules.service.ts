@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import {
   CreateCarRuleDto,
@@ -334,6 +338,8 @@ export class RulesService {
   }
   /* ================= GET HEALTH OFFERS ================= */
   async getHealthOffers(dto: GetOffersDto) {
+    let discount: number | undefined;
+
     const results = await this.prisma.healthRules.findMany({
       where: {
         planId: dto.planId,
@@ -364,13 +370,59 @@ export class RulesService {
         },
       },
     });
-    return { results };
+    if (dto.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: {
+          id: dto.offerId,
+        },
+      });
+      if (!offer) {
+        throw new NotFoundException("Offer not found");
+      }
+      if (!offer.insuranceTypes.includes("HEALTH")) {
+        throw new BadRequestException("Offer not Include this type");
+      }
+      discount = offer.discount;
+    }
+
+    const finalResults = results.map((r) => {
+      const discountAmount = discount ? (r.price * discount) / 100 : 0;
+
+      return {
+        ...r,
+        price: r.price,
+        discount: discount ?? 0,
+        priceAfterDiscount: r.price - discountAmount,
+      };
+    });
+
+    return {
+      results: finalResults,
+    };
   }
 
   async getHealthFamilyOffers(dto: GetFamilyOffersDto) {
     const { planId, members } = dto;
 
     const offersByCompany = new Map<number, any>();
+
+    let discount: number | undefined;
+
+    if (dto.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: { id: dto.offerId },
+      });
+
+      if (!offer) {
+        throw new NotFoundException("Offer not found");
+      }
+
+      if (!offer.insuranceTypes.includes("HEALTH")) {
+        throw new BadRequestException("Offer not include HEALTH type");
+      }
+
+      discount = offer.discount;
+    }
 
     for (const member of members) {
       const rules = await this.prisma.healthRules.findMany({
@@ -426,13 +478,27 @@ export class RulesService {
       }
     }
 
-    return {
-      results: Array.from(offersByCompany.values()),
-    };
+    // ✅ Apply discount on totalPrice here
+    const results = Array.from(offersByCompany.values()).map((company) => {
+      const discountAmount = discount
+        ? (company.totalPrice * discount) / 100
+        : 0;
+
+      return {
+        ...company,
+        totalPrice: company.totalPrice,
+        discount: discount ?? 0,
+        priceAfterDiscount: company.totalPrice - discountAmount,
+      };
+    });
+
+    return { results };
   }
 
   /* ================= GET LIFE OFFERS ================= */
   async getLifeOffers(dto: GetOffersDto) {
+    let discount: number | undefined;
+
     const result = await this.prisma.lifeRules.findMany({
       where: {
         planId: dto.planId,
@@ -465,17 +531,42 @@ export class RulesService {
         },
       },
     });
+    if (dto.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: {
+          id: dto.offerId,
+        },
+      });
+      if (!offer) {
+        throw new NotFoundException("Offer not found");
+      }
+      if (!offer.insuranceTypes.includes("LIFE")) {
+        throw new BadRequestException("Offer not Include this type");
+      }
+      discount = offer.discount;
+    }
 
     return {
-      result: result.map((r) => ({
-        ...r,
-        finalPrice: (dto.price * r.persitage) / 100,
-      })),
+      result: result.map((r) => {
+        const finalPrice = (dto.price * r.persitage) / 100;
+
+        const priceAfterDiscount = discount
+          ? finalPrice - (finalPrice * discount) / 100
+          : finalPrice;
+
+        return {
+          ...r,
+          finalPrice,
+          discount,
+          priceAfterDiscount,
+        };
+      }),
     };
   }
 
   async getCarOffers(dto: GetCarOffersDto) {
     /* ================= GROUP RULES ================= */
+    let discount: number | undefined;
 
     const rules = await this.prisma.carRules.findMany({
       where: {
@@ -530,6 +621,7 @@ export class RulesService {
         },
       },
     });
+
     const rulesByCompany = new Map<number, typeof rules>();
 
     for (const rule of rules) {
@@ -561,13 +653,37 @@ export class RulesService {
         );
       }
     }
+    if (dto.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: {
+          id: dto.offerId,
+        },
+      });
+      if (!offer) {
+        throw new NotFoundException("Offer not found");
+      }
+      if (!offer.insuranceTypes.includes("CAR")) {
+        throw new BadRequestException("Offer not Include this type");
+      }
+      discount = offer.discount;
+    }
 
     return {
-      result: finalRules.map((r) => ({
-        ...r,
-        finalPrice: (dto.price * r.persitage) / 100,
-        carGroups: [],
-      })),
+      result: finalRules.map((r) => {
+        const finalPrice = (dto.price * r.persitage) / 100;
+
+        const priceAfterDiscount = discount
+          ? finalPrice - (finalPrice * discount) / 100
+          : finalPrice;
+
+        return {
+          ...r,
+          finalPrice,
+          discount,
+          priceAfterDiscount,
+          carGroups: [],
+        };
+      }),
     };
   }
 
