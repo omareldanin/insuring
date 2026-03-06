@@ -132,6 +132,10 @@ export class createLifeDocumentDto {
   @IsString()
   @IsOptional()
   idFile: string;
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 }
 
 export class createHealthDocumentDto {
@@ -155,6 +159,10 @@ export class createHealthDocumentDto {
 
   @IsEnum(UserGender)
   gender: UserGender;
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 }
 
 export class CreateGroupHealthDocDto {
@@ -186,6 +194,10 @@ export class CreateGroupHealthDocDto {
   @IsArray()
   @IsNotEmpty()
   members: FamilyMemberDto[];
+
+  @IsOptional()
+  @IsInt()
+  offerId: number;
 }
 
 class FamilyMemberDto {

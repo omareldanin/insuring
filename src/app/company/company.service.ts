@@ -30,11 +30,12 @@ export class CompanyService {
         name: dto.name,
         arName: dto.arName,
         logo: dto.logo,
+        link: dto.link,
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
         companyPlans: {
-          create: dto.companyPlans.map((plan) => ({
+          create: dto.plans.map((plan) => ({
             planId: plan.planId,
             features: plan.features,
             arFeatures: plan.arFeatures,
@@ -84,6 +85,8 @@ export class CompanyService {
           name: true,
           arName: true,
           email: true,
+          logo: true,
+          link: true,
           companyType: true,
           insuranceTypes: true,
           ruleType: true,
@@ -114,6 +117,8 @@ export class CompanyService {
         name: true,
         arName: true,
         email: true,
+        logo: true,
+        link: true,
         companyType: true,
         insuranceTypes: true,
         ruleType: true,
@@ -144,13 +149,14 @@ export class CompanyService {
         name: dto.name,
         arName: dto.arName,
         logo: dto.logo,
+        link: dto.link,
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
         companyPlans: {
           deleteMany: {},
 
-          create: dto.companyPlans.map((plan) => ({
+          create: dto.plans.map((plan) => ({
             planId: plan.planId,
             features: plan.features,
             arFeatures: plan.arFeatures,

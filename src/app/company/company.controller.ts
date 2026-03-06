@@ -31,7 +31,10 @@ export class CompanyController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (file) {
-      dto.logo = "uploads/1769117418161-255385753.svg"; // or save full path if you want
+      dto.logo = "uploads/" + file.filename;
+    }
+    if (typeof dto.companyPlans === "string") {
+      dto.plans = JSON.parse(dto.companyPlans);
     }
 
     return this.service.create(dto);
@@ -70,12 +73,17 @@ export class CompanyController {
     @Body() dto: CreateCompanyDto,
   ) {
     if (file) {
-      dto.logo = "uploads/" + file.filename; // or save full path if you want
+      dto.logo = "uploads/" + file.filename;
     }
+
+    if (typeof dto.companyPlans === "string") {
+      dto.plans = JSON.parse(dto.companyPlans);
+    }
+
     return this.service.update(+id, dto);
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Patch(":companyId/plans/:planId")
   updatePlan(
     @Param("companyId") companyId: number,
@@ -85,7 +93,7 @@ export class CompanyController {
     return this.service.updatePlanFeatures(+companyId, +planId, dto);
   }
 
-  //   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Delete(":companyId/plans/:planId")
   deletePlan(
     @Param("companyId") companyId: number,

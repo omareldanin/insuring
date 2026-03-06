@@ -295,9 +295,8 @@ model InsuranceDocument {
   lifeInfo       InsuranceDocumentLifeInfo?
   renewRequests  InsuranceDocumentRenew[]
   refunds        Refund[]
-  offer          Offers?                      @relation(fields: [offerId], references: [id])
+  offer          Offers?                      @relation(fields: [offerId], references: [id], onDelete: SetNull)
   offerId        Int?
-  discount       Int?
 
   @@index([userId, companyId])
 }

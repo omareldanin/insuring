@@ -42,6 +42,20 @@ export class DocumentService {
       throw new NotFoundException("car not found");
     }
 
+    let finalPrice = (data.price * rule.persitage) / 100;
+
+    if (data.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: { id: data.offerId },
+      });
+
+      if (!offer) throw new NotFoundException("Offer not found");
+
+      const discountAmount = (finalPrice * offer.discount) / 100;
+
+      finalPrice = finalPrice - discountAmount;
+    }
+
     const document = await this.prisma.insuranceDocument.create({
       data: {
         insuranceType: "CAR",
@@ -49,14 +63,15 @@ export class DocumentService {
         userId: userId,
         planId: rule.planId,
         companyId: rule.insuranceCompanyId,
+        offerId: data.offerId,
       },
     });
 
-    const carInfo = await this.prisma.insuranceDocumentCarInfo.create({
+    await this.prisma.insuranceDocumentCarInfo.create({
       data: {
         persitage: rule.persitage,
         price: data.price,
-        finalPrice: (data.price * rule.persitage) / 100,
+        finalPrice: finalPrice,
         ruleId: data.ruleId,
         carYearId: data.carYearId,
         insuranceDocumentId: document.id,
@@ -80,12 +95,27 @@ export class DocumentService {
       throw new NotFoundException("rule not found");
     }
 
+    let finalPrice = (data.price * rule.persitage) / 100;
+
+    if (data.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: { id: data.offerId },
+      });
+
+      if (!offer) throw new NotFoundException("Offer not found");
+
+      const discountAmount = (finalPrice * offer.discount) / 100;
+
+      finalPrice = finalPrice - discountAmount;
+    }
+
     const document = await this.prisma.insuranceDocument.create({
       data: {
         insuranceType: "LIFE",
         userId: userId,
         planId: rule.planId,
         companyId: rule.insuranceCompanyId,
+        offerId: data.offerId,
       },
     });
 
@@ -93,7 +123,7 @@ export class DocumentService {
       data: {
         persitage: rule.persitage,
         price: data.price,
-        finalPrice: (data.price * rule.persitage) / 100,
+        finalPrice: finalPrice,
         ruleId: data.ruleId,
         insuranceDocumentId: document.id,
         idImage: data.idFile,
@@ -116,6 +146,19 @@ export class DocumentService {
     if (!rule) {
       throw new NotFoundException("rule not found");
     }
+    let finalPrice = rule.price;
+
+    if (data.offerId) {
+      const offer = await this.prisma.offers.findUnique({
+        where: { id: data.offerId },
+      });
+
+      if (!offer) throw new NotFoundException("Offer not found");
+
+      const discountAmount = (finalPrice * offer.discount) / 100;
+
+      finalPrice = finalPrice - discountAmount;
+    }
 
     const document = await this.prisma.insuranceDocument.create({
       data: {
@@ -128,7 +171,7 @@ export class DocumentService {
 
     await this.prisma.insuranceDocumentHealthInfo.create({
       data: {
-        totalPrice: rule.price,
+        totalPrice: finalPrice,
         insuranceDocumentId: document.id,
         type: "INDIVIDUAL",
         members: {
@@ -137,7 +180,7 @@ export class DocumentService {
             idImage: data.idFile,
             image: data.avatar,
             gender: data.gender,
-            price: rule.price,
+            price: finalPrice,
             ruleId: data.ruleId,
           },
         },
@@ -196,6 +239,17 @@ export class DocumentService {
         });
       }
 
+      if (data.offerId) {
+        const offer = await this.prisma.offers.findUnique({
+          where: { id: data.offerId },
+        });
+
+        if (!offer) throw new NotFoundException("Offer not found");
+
+        const discountAmount = (totalPrice * offer.discount) / 100;
+
+        totalPrice = totalPrice - discountAmount;
+      }
       // 3️⃣ Create document with nested relations
       const document = await tx.insuranceDocument.create({
         data: {
@@ -203,7 +257,7 @@ export class DocumentService {
           userId,
           planId: data.planId,
           companyId: data.companyId,
-
+          offerId: data.offerId,
           healthInfo: {
             create: {
               type: data.type,

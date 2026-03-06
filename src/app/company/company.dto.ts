@@ -6,17 +6,8 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import {
-  CarRuleType,
-  CompanyTypeEnum,
-  InsuranceTypeEnum,
-} from "@prisma/client";
+import { CompanyTypeEnum, InsuranceTypeEnum } from "@prisma/client";
 import { OmitType, PartialType } from "@nestjs/mapped-types";
-
-class CompanyPlanDto {
-  planId: number;
-  features: string; // JSON string OR plain text
-}
 
 export class CreateCompanyDto {
   @IsString()
@@ -29,6 +20,10 @@ export class CreateCompanyDto {
   @IsString()
   logo?: string;
 
+  @IsOptional()
+  @IsString()
+  link?: string;
+
   @IsEmail()
   email: string;
 
@@ -39,9 +34,14 @@ export class CreateCompanyDto {
   @IsEnum(InsuranceTypeEnum, { each: true })
   insuranceTypes: InsuranceTypeEnum[];
 
+  @IsOptional()
+  @IsString()
+  companyPlans: string;
+
+  @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  companyPlans: {
+  plans: {
     planId: number;
     features: string[];
     arFeatures: string[];

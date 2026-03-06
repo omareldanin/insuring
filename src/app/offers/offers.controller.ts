@@ -25,7 +25,7 @@ export class OffersController {
     return this.offersService.create(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   findAll(@Query("page") page?: string, @Query("size") size?: string) {
     return this.offersService.findAll({ page: +page, size: +size });

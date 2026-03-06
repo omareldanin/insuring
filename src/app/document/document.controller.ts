@@ -35,6 +35,7 @@ import { NoFilesInterceptor } from "@nestjs/platform-express";
 @Controller("document")
 export class DocumentController {
   constructor(private readonly service: DocumentService) {}
+
   private parseMembers(
     body: any,
     files: Express.Multer.File[],
@@ -93,6 +94,7 @@ export class DocumentController {
 
     return {
       planId: Number(body.planId),
+      offerId: Number(body.offerId),
       companyId: Number(body.companyId),
       type: body.type,
       paidKey: body.paidKey,

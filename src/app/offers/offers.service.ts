@@ -67,9 +67,6 @@ export class OffersService {
         skip,
         take: size,
         orderBy: { createdAt: "desc" },
-        include: {
-          documents: true,
-        },
       }),
       this.prisma.offers.count(),
     ]);
