@@ -26,6 +26,7 @@ import {
   createLifeDocumentDto,
   CreateRefundDto,
   CreateRenewDto,
+  updateDocument,
   UpdateRefundDto,
   UpdateRenewDto,
 } from "./document.dto";
@@ -268,13 +269,13 @@ export class DocumentController {
     @Body() body: UpdateRefundDto,
     @UploadedFiles() files,
   ) {
-    if (files.idImage)
+    if (files && files.idImage)
       body.idImage = `uploads/refund/${files.idImage[0].filename}`;
 
-    if (files.carLicence)
+    if (files && files.carLicence)
       body.carLicence = `uploads/refund/${files.carLicence[0].filename}`;
 
-    if (files.driveLicence)
+    if (files && files.driveLicence)
       body.driveLicence = `uploads/refund/${files.driveLicence[0].filename}`;
 
     return this.service.updateRefund(id, body);
@@ -370,6 +371,21 @@ export class DocumentController {
   @Get(":id")
   getOne(@Param("id", ParseIntPipe) id: number) {
     return this.service.getOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("confirm/:id")
+  confirmDocument(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: updateDocument,
+  ) {
+    return this.service.confirmDocument(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("renew/confirm/:id")
+  confirmDocumentRenew(@Param("id", ParseIntPipe) id: number) {
+    return this.service.confirmDocumentRenew(id);
   }
 
   @UseInterceptors(NoFilesInterceptor())

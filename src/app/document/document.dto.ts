@@ -87,6 +87,7 @@ export const documentSelect = {
     },
   },
 };
+
 export class createCarDocumentDto {
   @IsInt()
   ruleId: number;
@@ -267,7 +268,30 @@ export class UpdateRefundDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
+  @IsString()
   idImage?: string;
+
+  @IsOptional()
+  @IsString()
   carLicence?: string;
+
+  @IsOptional()
+  @IsString()
   driveLicence?: string;
+}
+
+export class updateDocument {
+  @IsString()
+  documentNumber: string;
+
+  @IsString()
+  startDate: string;
+
+  @IsString()
+  endDate: string;
+
+  @IsOptional()
+  @IsString()
+  link: string;
 }

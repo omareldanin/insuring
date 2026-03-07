@@ -267,11 +267,11 @@ export class AuthService {
     };
 
     const accessToken = this.jwt.sign(payload, {
-      expiresIn: "1d",
+      expiresIn: "7d",
     });
 
     const refreshToken = this.jwt.sign(payload, {
-      expiresIn: "7d",
+      expiresIn: "14d",
     });
 
     const hashedRefresh = crypto

@@ -12,14 +12,19 @@ import {
   CreateRefundDto,
   CreateRenewDto,
   documentSelect,
+  updateDocument,
   UpdateRefundDto,
   UpdateRenewDto,
 } from "./document.dto";
 import { InsuranceTypeEnum, Prisma } from "@prisma/client";
+import { NotificationService } from "../notification/notification.service";
 
 @Injectable()
 export class DocumentService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationService,
+  ) {}
 
   async createCarDocument(data: createCarDocumentDto, userId: number) {
     const rule = await this.prisma.carRules.findUnique({
@@ -590,6 +595,69 @@ export class DocumentService {
     });
   }
 
+  async confirmDocument(id: number, dto: updateDocument) {
+    const document = await this.prisma.insuranceDocument.update({
+      where: { id },
+      data: {
+        confirmed: true,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        documentNumber: dto.documentNumber,
+      },
+      select: {
+        id: true,
+        user: true,
+        userId: true,
+        documentNumber: true,
+      },
+    });
+
+    await this.notificationsService.sendNotification({
+      title: `تأكيد الوثيقه`,
+      content: `تم تأكيد الوثيقه الخاص بك رقم الوثيقه ${document.documentNumber}`,
+      userId: document.userId,
+    });
+
+    return document;
+  }
+
+  async confirmDocumentRenew(id: number) {
+    const renewRequest = await this.prisma.insuranceDocumentRenew.findUnique({
+      where: { id },
+    });
+
+    if (!renewRequest) {
+      throw new NotFoundException("Document not found");
+    }
+
+    const startDate = new Date();
+
+    const endDate = new Date(startDate);
+    endDate.setFullYear(endDate.getFullYear() + 1);
+
+    const updated = await this.prisma.insuranceDocumentRenew.update({
+      where: { id },
+      data: {
+        confirmed: true,
+        insuranceDocument: {
+          update: {
+            startDate,
+            endDate,
+          },
+        },
+      },
+      include: {
+        insuranceDocument: true,
+      },
+    });
+    await this.notificationsService.sendNotification({
+      title: `تجديد الوثيقه`,
+      content: `تم تجديد الوثيقه الخاص بك رقم الوثيقه ${updated.insuranceDocument.documentNumber}`,
+      userId: updated.insuranceDocument.userId,
+    });
+    return { message: "success" };
+  }
+
   async updateRenew(id: number, dto: UpdateRenewDto) {
     return this.prisma.insuranceDocumentRenew.update({
       where: { id },
@@ -662,9 +730,36 @@ export class DocumentService {
         skip: (page - 1) * size,
         take: size,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          confirmed: true,
+          paid: true,
+          paidKey: true,
+          createdAt: true,
           insuranceDocument: {
-            select: documentSelect,
+            select: {
+              id: true,
+              insuranceType: true,
+              startDate: true,
+              endDate: true,
+              documentNumber: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  phone: true,
+                },
+              },
+              company: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  logo: true,
+                  link: true,
+                },
+              },
+            },
           },
         },
       }),
@@ -705,7 +800,15 @@ export class DocumentService {
         skip: (page - 1) * size,
         take: size,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          status: true,
+          carNumber: true,
+          createdAt: true,
+          idImage: true,
+          carLicence: true,
+          driveLicence: true,
+          description: true,
           insuranceDocument: {
             select: documentSelect,
           },
