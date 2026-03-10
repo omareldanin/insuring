@@ -5,7 +5,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "LifeRules" ADD COLUMN     "years" INTEGER NOT NULL;
+ALTER TABLE "LifeRules" ADD COLUMN     "years" INTEGER NOT NULL DEFAULT 1;;
 
 -- CreateTable
 CREATE TABLE "DiscountCard" (
