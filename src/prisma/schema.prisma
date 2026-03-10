@@ -69,6 +69,7 @@ model User {
   partner            Partner?
   passwordReset      PasswordReset[]
   sessions           RefreshSession[]
+  discountCards      DiscountCard[]
 }
 
 model RefreshSession {
@@ -231,6 +232,7 @@ model LifeRules {
   gender                     UserGender
   insuranceType              InsuranceTypeEnum
   persitage                  Float
+  years                      Int
   createdAt                  DateTime                    @default(now())
   planId                     Int?
   insuranceCompanyId         Int?
@@ -391,4 +393,20 @@ model Offers {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   documents      InsuranceDocument[]
+}
+
+model DiscountCard {
+  id        Int     @id @default(autoincrement())
+  name      String
+  idNumber  String
+  idImage   String
+  confirmed Boolean @default(false)
+  paid      Boolean @default(false)
+  paidKey   String?
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
