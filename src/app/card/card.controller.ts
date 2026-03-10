@@ -41,7 +41,13 @@ export class DiscountCardController {
 
   @UseGuards(JwtAuthGuard)
   @Get("getAll")
-  getAll(@Query("page") page = 1, @Query("size") size = 10, @Req() req) {
+  getAll(
+    @Req() req,
+    @Query("page") page = 1,
+    @Query("size") size = 10,
+    @Query("confirmed") confirmed?: string,
+    @Query("paid") paid?: string,
+  ) {
     let userId: number | undefined = undefined;
 
     const loggedInUser = req.user as LoggedInUserType;
@@ -49,7 +55,13 @@ export class DiscountCardController {
       userId = loggedInUser.id;
     }
 
-    return this.service.getAll(Number(page), Number(size), userId);
+    return this.service.getAll({
+      page: page ? Number(page) : undefined,
+      size: size ? Number(size) : undefined,
+      userId: userId ? Number(userId) : undefined,
+      confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
+      paid: paid !== undefined ? paid === "true" : undefined,
+    });
   }
 
   @UseGuards(JwtAuthGuard)

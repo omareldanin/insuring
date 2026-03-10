@@ -18,15 +18,24 @@ export class DiscountCardService {
     });
   }
 
-  async getAll(page = 1, size = 10, userId?: number) {
-    const skip = (page - 1) * size;
+  async getAll(filter: {
+    page?: number;
+    size?: number;
+    userId?: number;
+    documentId?: number;
+    confirmed?: boolean;
+    paid?: boolean;
+  }) {
+    const skip = (filter.page - 1) * filter.size;
 
     const [data, total] = await Promise.all([
       this.prisma.discountCard.findMany({
         skip,
-        take: size,
+        take: filter.size,
         where: {
-          userId: userId,
+          userId: filter.userId,
+          confirmed: filter.confirmed,
+          paid: filter.paid,
         },
         orderBy: {
           createdAt: "desc",
@@ -48,9 +57,9 @@ export class DiscountCardService {
       data,
       meta: {
         total,
-        page,
-        size,
-        pages: Math.ceil(total / size),
+        page: filter.page,
+        size: filter.size,
+        pages: Math.ceil(total / filter.size),
       },
     };
   }
@@ -78,10 +87,11 @@ export class DiscountCardService {
       data: {
         paidKey: data.paidKey,
         paid: data.paidKey ? true : undefined,
-        confirmed: data.confirmed,
+        confirmed: data.startDate ? true : undefined,
         startDate: data.startDate ? new Date(data.startDate) : undefined,
         endDate: data.startDate ? new Date(data.endDate) : undefined,
-        ...data,
+        idImage: data.idImage,
+        idNumber: data.idNumber,
       },
     });
   }
