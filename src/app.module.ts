@@ -16,6 +16,7 @@ import { DocumentModule } from "./app/document/document.module";
 import { OffersModule } from "./app/offers/offers.module";
 import { CardModule } from "./app/card/card.module";
 import { EmailModule } from "./app/email/email.module";
+import { ScheduleModule } from "@nestjs/schedule";
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { EmailModule } from "./app/email/email.module";
         limit: 3,
       },
     ]),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     NotificationModule,
