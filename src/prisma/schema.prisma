@@ -396,12 +396,14 @@ model Offers {
 }
 
 model DiscountCard {
-  id        Int     @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
   idNumber  String
   idImage   String
-  confirmed Boolean @default(false)
-  paid      Boolean @default(false)
+  startDate DateTime?
+  endDate   DateTime?
+  confirmed Boolean   @default(false)
+  paid      Boolean   @default(false)
   paidKey   String?
 
   userId Int
