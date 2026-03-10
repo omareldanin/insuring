@@ -59,6 +59,12 @@ export class CompanyController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get("statistics")
+  getStatistics() {
+    return this.service.getStatistics();
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(":id")
   findOne(@Param("id") id: number) {
     return this.service.findOne(+id);

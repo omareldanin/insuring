@@ -217,4 +217,60 @@ export class CompanyService {
       where: { id },
     });
   }
+
+  async getStatistics() {
+    const totalUsers = await this.prisma.user.count({
+      where: { role: "CLIENT" },
+    });
+
+    const totalPartners = await this.prisma.user.count({
+      where: { role: "PARTNER" },
+    });
+
+    const totalCompanies = await this.prisma.insuranceCompany.count();
+
+    const totalDocuments = await this.prisma.insuranceDocument.count();
+
+    const totalConfirmed = await this.prisma.insuranceDocument.count({
+      where: { confirmed: true },
+    });
+
+    const totalNotConfirmed = await this.prisma.insuranceDocument.count({
+      where: { confirmed: false },
+    });
+
+    const companiesDocuments = await this.prisma.insuranceDocument.groupBy({
+      by: ["companyId"],
+      _count: {
+        id: true,
+      },
+    });
+
+    const companies = await this.prisma.insuranceCompany.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    const documentsMap = new Map(
+      companiesDocuments.map((c) => [c.companyId, c._count.id]),
+    );
+
+    const companiesChart = companies.map((company) => ({
+      companyId: company.id,
+      companyName: company.name,
+      documents: documentsMap.get(company.id) || 0,
+    }));
+
+    return {
+      totalUsers,
+      totalPartners,
+      totalCompanies,
+      totalDocuments,
+      totalConfirmed,
+      totalNotConfirmed,
+      companiesChart,
+    };
+  }
 }

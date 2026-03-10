@@ -403,6 +403,7 @@ export class RulesService {
 
   async getHealthFamilyOffers(dto: GetFamilyOffersDto) {
     const { planId, members } = dto;
+    console.log("dto", dto);
 
     const offersByCompany = new Map<number, any>();
 
@@ -491,6 +492,8 @@ export class RulesService {
         priceAfterDiscount: company.totalPrice - discountAmount,
       };
     });
+
+    console.log("results", results);
 
     return { results };
   }
