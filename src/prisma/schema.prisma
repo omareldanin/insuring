@@ -232,7 +232,7 @@ model LifeRules {
   gender                     UserGender
   insuranceType              InsuranceTypeEnum
   persitage                  Float
-  years                      Int
+  years                      Int                         @default(1)
   createdAt                  DateTime                    @default(now())
   planId                     Int?
   insuranceCompanyId         Int?
