@@ -69,6 +69,7 @@ export class RulesService {
             persitage: rule.persitage,
             planId: rule.planId,
             insuranceCompanyId: rule.insuranceCompanyId,
+            years: rule.years,
           },
         });
       }
@@ -82,6 +83,7 @@ export class RulesService {
           persitage: rule.persitage,
           planId: rule.planId,
           insuranceCompanyId: rule.insuranceCompanyId,
+          years: rule.years,
         },
       });
     });
@@ -511,6 +513,7 @@ export class RulesService {
         gender: dto.gender,
         from: { lte: dto.age },
         to: { gte: dto.age },
+        years: dto.years,
       },
       select: {
         id: true,

@@ -13,6 +13,14 @@ export class CreateDiscountCardDto {
   idImage: string;
 
   @IsOptional()
+  @IsString()
+  startDate: string;
+
+  @IsOptional()
+  @IsString()
+  endDate: string;
+
+  @IsOptional()
   @IsBoolean()
   confirmed?: boolean;
 

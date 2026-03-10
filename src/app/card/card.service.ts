@@ -79,6 +79,8 @@ export class DiscountCardService {
         paidKey: data.paidKey,
         paid: data.paidKey ? true : undefined,
         confirmed: data.confirmed,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.startDate ? new Date(data.endDate) : undefined,
         ...data,
       },
     });

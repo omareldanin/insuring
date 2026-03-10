@@ -31,6 +31,10 @@ export class GetOffersDto {
   @IsInt()
   planId: number;
 
+  @IsInt()
+  @Min(1)
+  years: number;
+
   @IsOptional()
   @IsInt()
   price: number;
@@ -111,7 +115,7 @@ export class CreateHealthRulesDto {
 class LifeRuleItemDto {
   @IsOptional()
   @IsInt()
-  id?: number; // 👈 if exists → update
+  id?: number;
 
   @IsInt()
   from: number;
@@ -127,6 +131,9 @@ class LifeRuleItemDto {
 
   @IsNumber()
   persitage: number;
+
+  @IsNumber()
+  years: number;
 
   @IsInt()
   planId: number;
