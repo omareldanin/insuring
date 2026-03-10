@@ -18,18 +18,23 @@ import {
 } from "./document.dto";
 import { InsuranceTypeEnum, Prisma } from "@prisma/client";
 import { NotificationService } from "../notification/notification.service";
+import { EmailService } from "../email/email.service";
 
 @Injectable()
 export class DocumentService {
   constructor(
     private prisma: PrismaService,
     private notificationsService: NotificationService,
+    private emailService: EmailService,
   ) {}
 
   async createCarDocument(data: createCarDocumentDto, userId: number) {
     const rule = await this.prisma.carRules.findUnique({
       where: {
         id: data.ruleId,
+      },
+      include: {
+        insuranceCompany: true,
       },
     });
 
@@ -86,6 +91,20 @@ export class DocumentService {
       },
     });
 
+    if (rule.insuranceCompany?.email) {
+      await this.emailService.sendCompanyDocumentEmail(
+        rule.insuranceCompany.email,
+        {
+          documentId: document.id,
+          price: data.price,
+          finalPrice,
+          carYear: carYear.year.toString(),
+          idImage: data.idFile,
+          carLicence: data.carLicenseFile,
+          driveLicence: data.driveLicenseFile,
+        },
+      );
+    }
     return document;
   }
 
@@ -93,6 +112,9 @@ export class DocumentService {
     const rule = await this.prisma.lifeRules.findUnique({
       where: {
         id: data.ruleId,
+      },
+      include: {
+        insuranceCompany: true,
       },
     });
 
@@ -135,6 +157,22 @@ export class DocumentService {
       },
     });
 
+    if (rule.insuranceCompany?.email) {
+      try {
+        await this.emailService.sendLifeDocumentEmail(
+          rule.insuranceCompany.email,
+          {
+            documentId: document.id,
+            price: data.price,
+            finalPrice,
+            idImage: data.idFile,
+          },
+        );
+      } catch (error) {
+        console.error("Life document email failed:", error);
+      }
+    }
+
     return document;
   }
 
@@ -172,6 +210,9 @@ export class DocumentService {
         planId: rule.planId,
         companyId: rule.insuranceCompanyId,
       },
+      include: {
+        company: true,
+      },
     });
 
     await this.prisma.insuranceDocumentHealthInfo.create({
@@ -191,7 +232,23 @@ export class DocumentService {
         },
       },
     });
-
+    if (document.company?.email) {
+      try {
+        await this.emailService.sendIndividualHealthDocumentEmail(
+          document.company.email,
+          {
+            documentId: document.id,
+            age: data.age,
+            gender: data.gender,
+            price: finalPrice,
+            idImage: data.idFile,
+            avatar: data.avatar,
+          },
+        );
+      } catch (error) {
+        console.error("Individual health email failed", error);
+      }
+    }
     return document;
   }
 
@@ -277,6 +334,7 @@ export class DocumentService {
           },
         },
         include: {
+          company: true,
           healthInfo: {
             include: {
               members: true,
@@ -285,6 +343,23 @@ export class DocumentService {
         },
       });
 
+      if (document.companyId) {
+        if (document.company?.email) {
+          try {
+            await this.emailService.sendGroupHealthDocumentEmail(
+              document.company.email,
+              {
+                documentId: document.id,
+                totalPrice,
+                groupName: data.groupName,
+                members: membersCreate,
+              },
+            );
+          } catch (error) {
+            console.error("Group health email failed", error);
+          }
+        }
+      }
       return document;
     });
   }

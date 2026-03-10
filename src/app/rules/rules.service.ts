@@ -202,8 +202,6 @@ export class RulesService {
     planId?: number;
     insuranceCompanyId?: number;
   }) {
-    console.log(filters);
-
     const whereBase: any = {};
 
     if (filters?.planId) {
