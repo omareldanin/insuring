@@ -58,6 +58,7 @@ export class PlansService {
       where: {
         insuranceType: type || undefined,
         forHealthGroups: forHealthGroups,
+        forDiscountCard: false,
       },
       orderBy: [{ id: "asc" }],
     });
@@ -70,6 +71,7 @@ export class PlansService {
       where: {
         insuranceType: type,
         forHealthGroups: forHealthGroups,
+        forDiscountCard: false,
       },
     });
   }

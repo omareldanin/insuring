@@ -131,6 +131,7 @@ model InsurancePlan {
   arDescription      String[]
   recommend          Boolean             @default(false)
   forHealthGroups    Boolean             @default(false)
+  forDiscountCard    Boolean             @default(false)
   insuranceType      InsuranceTypeEnum
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
