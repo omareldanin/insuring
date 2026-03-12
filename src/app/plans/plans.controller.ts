@@ -28,13 +28,17 @@ export class PlansController {
     return this.service.create(dto);
   }
 
-  // @UseGuards(JwtAuthGuard)
   @Get("/getAll")
   findAll(
     @Query("type") type: InsuranceTypeEnum,
     @Query("forHealthGroups") forHealthGroups: boolean,
   ) {
     return this.service.findAll(type, forHealthGroups);
+  }
+
+  @Get("/cards")
+  findAllCards() {
+    return this.service.findAllForDiscountCard();
   }
 
   @UseGuards(JwtAuthGuard)

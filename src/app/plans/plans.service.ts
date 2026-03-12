@@ -66,6 +66,26 @@ export class PlansService {
     return { results };
   }
 
+  async findAllForDiscountCard() {
+    const results = await this.prisma.insurancePlan.findMany({
+      where: {
+        forDiscountCard: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        arName: true,
+        hint: true,
+        arHint: true,
+        description: true,
+        arDescription: true,
+      },
+      orderBy: [{ id: "asc" }],
+    });
+
+    return { results };
+  }
+
   async findByType(type: InsuranceTypeEnum, forHealthGroups: boolean) {
     return this.prisma.insurancePlan.findMany({
       where: {
