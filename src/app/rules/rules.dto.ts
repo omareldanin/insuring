@@ -31,8 +31,8 @@ export class GetOffersDto {
   @IsInt()
   planId: number;
 
+  @IsOptional()
   @IsInt()
-  @Min(1)
   years: number;
 
   @IsOptional()

@@ -41,6 +41,7 @@ import { ScheduleModule } from "@nestjs/schedule";
     DocumentModule,
     OffersModule,
     CardModule,
+    CarsModule,
     EmailModule,
   ],
   controllers: [AppController],
