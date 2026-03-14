@@ -346,6 +346,9 @@ export class RulesService {
         gender: dto.gender,
         from: { lte: dto.age },
         to: { gte: dto.age },
+        insuranceCompany: {
+          companyType: dto.companyType,
+        },
       },
       select: {
         id: true,
