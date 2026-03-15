@@ -406,7 +406,6 @@ export class RulesService {
 
   async getHealthFamilyOffers(dto: GetFamilyOffersDto) {
     const { planId, members } = dto;
-    console.log("dto", dto);
 
     const offersByCompany = new Map<number, any>();
 

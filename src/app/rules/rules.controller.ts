@@ -59,13 +59,17 @@ export class RulesController {
   @UseInterceptors(NoFilesInterceptor())
   @Post("health/offers")
   getHealthOffers(@Body() dto: GetOffersDto) {
+    console.log(dto);
+
     return this.service.getHealthOffers(dto);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
   @Post("family/health/offers")
   getFamilyHealthOffers(@Body() dto: GetFamilyOffersDto) {
+    console.log(dto);
+
     return this.service.getHealthFamilyOffers(dto);
   }
 
