@@ -37,6 +37,7 @@ export class DocumentService {
         insuranceCompany: true,
       },
     });
+    console.log(data);
 
     if (!rule) {
       throw new NotFoundException("rule not found");
@@ -76,6 +77,8 @@ export class DocumentService {
         offerId: data.offerId,
       },
     });
+
+    console.log("document", document);
 
     await this.prisma.insuranceDocumentCarInfo.create({
       data: {
