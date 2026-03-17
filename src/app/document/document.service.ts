@@ -59,6 +59,7 @@ export class DocumentService {
       const offer = await this.prisma.offers.findUnique({
         where: { id: data.offerId },
       });
+      console.log(data.offerId);
 
       if (!offer) throw new NotFoundException("Offer not found");
 
