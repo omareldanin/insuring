@@ -76,7 +76,7 @@ export class RulesController {
     return this.service.getLifeOffers(dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @UseInterceptors(NoFilesInterceptor())
   @Post("car/offers")
   getOffers(@Body() dto: GetCarOffersDto) {

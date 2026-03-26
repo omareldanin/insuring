@@ -571,7 +571,12 @@ export class RulesService {
   async getCarOffers(dto: GetCarOffersDto) {
     /* ================= GROUP RULES ================= */
     let discount: number | undefined;
-    console.log(dto);
+
+    const year = await this.prisma.carYear.findUnique({
+      where: {
+        id: dto.year,
+      },
+    });
 
     const rules = await this.prisma.carRules.findMany({
       where: {
@@ -586,7 +591,7 @@ export class RulesService {
               some: {
                 makeId: dto.makeId,
                 modelId: dto.modelId,
-                year: dto.year,
+                year: year.year,
               },
             },
           },
@@ -605,7 +610,7 @@ export class RulesService {
           where: {
             makeId: dto.makeId,
             modelId: dto.modelId,
-            year: dto.year,
+            year: year.year,
           },
         },
         insuranceCompany: {
@@ -673,7 +678,6 @@ export class RulesService {
       }
       discount = offer.discount;
     }
-    console.log(finalRules);
 
     return {
       result: finalRules.map((r) => {
