@@ -495,8 +495,6 @@ export class RulesService {
       };
     });
 
-    console.log("results", results);
-
     return { results };
   }
 
@@ -573,6 +571,7 @@ export class RulesService {
   async getCarOffers(dto: GetCarOffersDto) {
     /* ================= GROUP RULES ================= */
     let discount: number | undefined;
+    console.log(dto);
 
     const rules = await this.prisma.carRules.findMany({
       where: {
@@ -659,6 +658,7 @@ export class RulesService {
         );
       }
     }
+
     if (dto.offerId) {
       const offer = await this.prisma.offers.findUnique({
         where: {
@@ -673,6 +673,7 @@ export class RulesService {
       }
       discount = offer.discount;
     }
+    console.log(finalRules);
 
     return {
       result: finalRules.map((r) => {
