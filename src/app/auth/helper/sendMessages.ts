@@ -18,36 +18,21 @@ export async function sendOtpTemplate(rawPhone: string, code: string) {
     to,
     type: "template",
     template: {
-      name: "order_processing_notification",
-      language: { code: "ar" },
+      name: "verification_message",
+      language: { code: "en_US" },
       components: [
         {
           type: "body",
+          parameters: [{ type: "text", text: code }],
+        },
+        {
+          type: "button",
+          sub_type: "url",
+          index: "0",
           parameters: [
-            { type: "text", text: `الكود ${code}` },
             {
               type: "text",
-              text: "غير محدد",
-            },
-            {
-              type: "text",
-              text: "غير محدد",
-            },
-            {
-              type: "text",
-              text: "غير محدد",
-            },
-            {
-              type: "text",
-              text: "غير محدد",
-            },
-            {
-              type: "text",
-              text: "غير محدد",
-            },
-            {
-              type: "text",
-              text: "غير محدد",
+              text: code, // or token used in URL
             },
           ],
         },
