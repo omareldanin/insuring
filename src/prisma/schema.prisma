@@ -11,6 +11,7 @@ enum UserRole {
   ADMIN
   CLIENT
   PARTNER
+  SALES
 }
 
 enum UserGender {
@@ -67,6 +68,8 @@ model User {
   insuranceDocuments InsuranceDocument[]
   notifications      Notification[]
   partner            Partner?
+  createdByPartnerId Int?
+  createdByPartner   Partner?            @relation("PartnerManagedUsers", fields: [createdByPartnerId], references: [id])
   passwordReset      PasswordReset[]
   sessions           RefreshSession[]
   discountCards      DiscountCard[]
@@ -89,6 +92,8 @@ model Admin {
 model Partner {
   id   Int  @id
   user User @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  managedUsers User[] @relation("PartnerManagedUsers")
 }
 
 model PhoneOtp {
