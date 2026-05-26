@@ -291,6 +291,8 @@ model InsuranceDocument {
   paidKey        String?
   documentNumber String?
   userId         Int
+  partnerId      Int?
+  salesId        Int?
   planId         Int
   companyId      Int
   createdAt      DateTime                     @default(now())

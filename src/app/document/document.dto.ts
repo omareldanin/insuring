@@ -99,6 +99,10 @@ export class createCarDocumentDto {
   @IsString()
   paidKey: string;
 
+  @IsOptional()
+  @IsString()
+  phone: string;
+
   @IsInt()
   price: number;
 
@@ -127,6 +131,10 @@ export class createLifeDocumentDto {
   @IsString()
   paidKey: string;
 
+  @IsOptional()
+  @IsString()
+  phone: string;
+
   @IsInt()
   price: number;
 
@@ -146,6 +154,10 @@ export class createHealthDocumentDto {
   @IsOptional()
   @IsString()
   paidKey: string;
+
+  @IsOptional()
+  @IsString()
+  phone: string;
 
   @IsInt()
   age: number;
@@ -175,6 +187,10 @@ export class CreateGroupHealthDocDto {
 
   @IsEnum(InsuranceHealthTypeEnum)
   type: InsuranceHealthTypeEnum;
+
+  @IsOptional()
+  @IsString()
+  phone: string;
 
   @IsOptional()
   @IsString()

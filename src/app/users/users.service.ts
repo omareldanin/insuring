@@ -10,12 +10,13 @@ import { env } from "src/config";
 import { PrismaService } from "src/prisma/prisma.service";
 import { userSelect, userSelectReform } from "./user.response";
 import { CreateUserDto, UpdateUserDto } from "./user.dto";
+import { LoggedInUserType } from "../auth/auth.dto";
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(dto: CreateUserDto) {
+  async createUser(dto: CreateUserDto, loggedInUser: LoggedInUserType) {
     const phone = dto.phone;
 
     const email = dto.email.toLowerCase();
@@ -49,6 +50,8 @@ export class UsersService {
         verified: true,
         email: dto.email,
         gender: dto.gender,
+        createdByPartnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
       },
     });
     if (dto.role === "ADMIN") {
@@ -100,24 +103,31 @@ export class UsersService {
     return { result: user };
   }
 
-  async getAllUser(filters: {
-    role: UserRole;
-    page: number;
-    size: number;
-    phone?: string;
-    name?: string;
-  }) {
+  async getAllUser(
+    filters: {
+      role: UserRole;
+      page: number;
+      size: number;
+      phone?: string;
+      name?: string;
+    },
+    loggedInUser: LoggedInUserType,
+  ) {
     const page = +filters.page || 1;
     const pageSize = +filters.size || 10;
 
+    const where = {
+      role: filters.role,
+      name: filters.name ? { contains: filters.name } : undefined,
+      phone: filters.phone ? { contains: filters.phone } : undefined,
+      createdByPartnerId:
+        loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      deleted: false,
+    };
+
     const [results, total] = await Promise.all([
       this.prisma.user.findMany({
-        where: {
-          role: filters.role,
-          name: filters.name ? { contains: filters.name } : undefined,
-          phone: filters.phone ? { contains: filters.phone } : undefined,
-          deleted: false,
-        },
+        where: where,
         select: userSelect,
         orderBy: {
           id: "asc",
@@ -126,9 +136,7 @@ export class UsersService {
         take: +pageSize,
       }),
       this.prisma.user.count({
-        where: {
-          role: filters.role,
-        },
+        where: where,
       }),
     ]);
 

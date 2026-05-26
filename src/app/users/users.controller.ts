@@ -28,12 +28,15 @@ export class UsersController {
   async create(
     @Body() dto: CreateUserDto,
     @UploadedFile() file: Express.Multer.File,
+    @Req() req,
   ) {
+    const loggedInUser = req.user as LoggedInUserType;
+
     if (file) {
       dto.avatar = "uploads/" + file.filename; // or save full path if you want
     }
 
-    const user = await this.userService.createUser(dto);
+    const user = await this.userService.createUser(dto, loggedInUser);
     return { message: "success", user };
   }
 
@@ -68,8 +71,10 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get("/getAll")
-  getAll(@Query() filters: any) {
-    const result = this.userService.getAllUser(filters);
+  getAll(@Query() filters: any, @Req() req) {
+    const loggedInUser = req.user as LoggedInUserType;
+
+    const result = this.userService.getAllUser(filters, loggedInUser);
 
     return result;
   }

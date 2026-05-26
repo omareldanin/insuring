@@ -50,3 +50,45 @@ export async function sendOtpTemplate(rawPhone: string, code: string) {
 
   return res.data; // يحتوي wamid
 }
+
+export async function sendWelcomeMessage(
+  rawPhone: string,
+  username: string,
+  password: string,
+) {
+  const to = normalizePhone(rawPhone);
+  if (!to) {
+    throw new Error(`Invalid phone number: ${rawPhone}`);
+  }
+
+  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: "send_message",
+      language: { code: "en_US" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: username },
+            { type: "text", text: password },
+          ],
+        },
+      ],
+    },
+  };
+
+  const res = await axios.post(url, payload, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    timeout: 15000,
+  });
+
+  return res.data; // يحتوي wamid
+}

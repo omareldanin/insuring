@@ -19,6 +19,7 @@ import {
 import { InsuranceTypeEnum, Prisma } from "@prisma/client";
 import { NotificationService } from "../notification/notification.service";
 import { EmailService } from "../email/email.service";
+import { LoggedInUserType } from "../auth/auth.dto";
 
 @Injectable()
 export class DocumentService {
@@ -28,7 +29,14 @@ export class DocumentService {
     private emailService: EmailService,
   ) {}
 
-  async createCarDocument(data: createCarDocumentDto, userId: number) {
+  async createCarDocument(
+    data: createCarDocumentDto,
+    loggedInUser: LoggedInUserType,
+  ) {
+    let userId = loggedInUser.id;
+    let partnerId: number | undefined = undefined;
+    let salesId: number | undefined = undefined;
+
     const rule = await this.prisma.carRules.findUnique({
       where: {
         id: data.ruleId,
@@ -37,7 +45,6 @@ export class DocumentService {
         insuranceCompany: true,
       },
     });
-    console.log(data);
 
     if (!rule) {
       throw new NotFoundException("rule not found");
@@ -55,11 +62,39 @@ export class DocumentService {
 
     let finalPrice = (data.price * rule.persitage) / 100;
 
+    if (loggedInUser.role === "PARTNER" || loggedInUser.role === "SALES") {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          phone: data.phone,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException("user not found");
+      }
+
+      userId = user.id;
+
+      if (loggedInUser.role === "PARTNER") {
+        partnerId = loggedInUser.id;
+      } else {
+        const user = await this.prisma.user.findUnique({
+          where: {
+            id: loggedInUser.id,
+          },
+          select: {
+            partner: true,
+          },
+        });
+        partnerId = user.partner.id;
+        salesId = loggedInUser.id;
+      }
+    }
+
     if (data.offerId) {
       const offer = await this.prisma.offers.findUnique({
         where: { id: data.offerId },
       });
-      console.log(data.offerId);
 
       if (!offer) throw new NotFoundException("Offer not found");
 
@@ -76,10 +111,10 @@ export class DocumentService {
         planId: rule.planId,
         companyId: rule.insuranceCompanyId,
         offerId: data.offerId,
+        partnerId,
+        salesId,
       },
     });
-
-    console.log("document", document);
 
     await this.prisma.insuranceDocumentCarInfo.create({
       data: {
@@ -383,7 +418,17 @@ export class DocumentService {
     const where: Prisma.InsuranceDocumentWhereInput = {
       companyId: query.companyId,
       planId: query.planId,
-      userId: query.userId,
+      OR: [
+        {
+          userId: query.userId,
+        },
+        {
+          partnerId: query.userId,
+        },
+        {
+          salesId: query.userId,
+        },
+      ],
       confirmed: query.confirmed,
       insuranceType: query.insuranceType,
     };

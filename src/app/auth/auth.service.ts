@@ -216,7 +216,7 @@ export class AuthService {
       : { phone: identifier };
 
     const user = await this.prisma.user.findFirst({
-      where: { ...where, role: "ADMIN" },
+      where: { ...where, role: { in: ["ADMIN", "PARTNER"] } },
     });
 
     if (!user || user.deleted)

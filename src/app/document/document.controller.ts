@@ -99,7 +99,7 @@ export class DocumentController {
       companyId: Number(body.companyId),
       type: body.type,
       paidKey: body.paidKey,
-
+      phone: body.phone,
       groupName: body.groupName ?? null,
       companyTaxRegister,
       companyCommercialRegister,
@@ -157,7 +157,7 @@ export class DocumentController {
       ? `uploads/car/${files.carLicenseFile[0].filename}`
       : undefined;
 
-    return this.service.createCarDocument(body, loggedInUser.id);
+    return this.service.createCarDocument(body, loggedInUser);
   }
 
   @UseGuards(JwtAuthGuard)
