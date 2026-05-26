@@ -16,7 +16,6 @@ import {
   ResetPasswordDto,
   SignupDto,
   UpdateProfileDto,
-  VerifyPhoneDto,
 } from "./auth.dto";
 import { User, UserRole } from "@prisma/client";
 import { sendOtpTemplate } from "./helper/sendMessages";

@@ -11,6 +11,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { userSelect, userSelectReform } from "./user.response";
 import { CreateUserDto, UpdateUserDto } from "./user.dto";
 import { LoggedInUserType } from "../auth/auth.dto";
+import { sendWelcomeMessage } from "../auth/helper/sendMessages";
 
 @Injectable()
 export class UsersService {
@@ -54,6 +55,7 @@ export class UsersService {
           loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
       },
     });
+
     if (dto.role === "ADMIN") {
       await this.prisma.admin.create({
         data: {
@@ -68,6 +70,11 @@ export class UsersService {
         },
       });
     }
+
+    if (loggedInUser.role === "PARTNER" || loggedInUser.role === "ADMIN") {
+      await sendWelcomeMessage(user.phone, user.phone, dto.password);
+    }
+
     return user;
   }
 

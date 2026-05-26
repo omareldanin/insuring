@@ -299,15 +299,18 @@ export class DocumentController {
       userId = loggedInUser.id + "";
     }
 
-    return this.service.getAll({
-      page: page ? Number(page) : undefined,
-      size: size ? Number(size) : undefined,
-      companyId: companyId ? Number(companyId) : undefined,
-      planId: planId ? Number(planId) : undefined,
-      userId: userId ? Number(userId) : undefined,
-      confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
-      insuranceType,
-    });
+    return this.service.getAll(
+      {
+        page: page ? Number(page) : undefined,
+        size: size ? Number(size) : undefined,
+        companyId: companyId ? Number(companyId) : undefined,
+        planId: planId ? Number(planId) : undefined,
+        userId: userId ? Number(userId) : undefined,
+        confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
+        insuranceType,
+      },
+      loggedInUser,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

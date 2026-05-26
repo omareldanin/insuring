@@ -69,7 +69,7 @@ export async function sendWelcomeMessage(
     type: "template",
     template: {
       name: "send_message",
-      language: { code: "en_US" },
+      language: { code: "en" },
       components: [
         {
           type: "body",
@@ -89,6 +89,8 @@ export async function sendWelcomeMessage(
     },
     timeout: 15000,
   });
+
+  console.log(res);
 
   return res.data; // يحتوي wamid
 }

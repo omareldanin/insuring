@@ -36,6 +36,7 @@ export class DocumentService {
     let userId = loggedInUser.id;
     let partnerId: number | undefined = undefined;
     let salesId: number | undefined = undefined;
+    console.log(data);
 
     const rule = await this.prisma.carRules.findUnique({
       where: {
@@ -403,34 +404,29 @@ export class DocumentService {
     });
   }
 
-  async getAll(query: {
-    page?: number;
-    size?: number;
-    companyId?: number;
-    planId?: number;
-    userId?: number;
-    confirmed?: boolean;
-    insuranceType?: InsuranceTypeEnum;
-  }) {
+  async getAll(
+    query: {
+      page?: number;
+      size?: number;
+      companyId?: number;
+      planId?: number;
+      userId?: number;
+      confirmed?: boolean;
+      insuranceType?: InsuranceTypeEnum;
+    },
+    loggedInUser: LoggedInUserType,
+  ) {
     const page = Number(query.page) || 1;
     const size = Number(query.size) || 10;
 
     const where: Prisma.InsuranceDocumentWhereInput = {
       companyId: query.companyId,
       planId: query.planId,
-      OR: [
-        {
-          userId: query.userId,
-        },
-        {
-          partnerId: query.userId,
-        },
-        {
-          salesId: query.userId,
-        },
-      ],
       confirmed: query.confirmed,
       insuranceType: query.insuranceType,
+      userId: loggedInUser.role === "CLIENT" ? loggedInUser.id : undefined,
+      partnerId: loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      salesId: loggedInUser.role === "SALES" ? loggedInUser.id : undefined,
     };
 
     const [data, total] = await this.prisma.$transaction([
