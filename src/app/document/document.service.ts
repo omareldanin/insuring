@@ -84,10 +84,10 @@ export class DocumentService {
             id: loggedInUser.id,
           },
           select: {
-            partner: true,
+            createdByPartnerId: true,
           },
         });
-        partnerId = user.partner.id;
+        partnerId = user.createdByPartnerId;
         salesId = loggedInUser.id;
       }
     }
