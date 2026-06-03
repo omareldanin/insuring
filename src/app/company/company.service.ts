@@ -9,6 +9,7 @@ import {
   UpdateCompanyDto,
   UpdateCompanyPlanDto,
 } from "./company.dto";
+import { LoggedInUserType } from "../auth/auth.dto";
 
 @Injectable()
 export class CompanyService {
@@ -218,29 +219,57 @@ export class CompanyService {
     });
   }
 
-  async getStatistics() {
+  async getStatistics(loggedInUser: LoggedInUserType) {
     const totalUsers = await this.prisma.user.count({
-      where: { role: "CLIENT" },
+      where: {
+        role: "CLIENT",
+        createdByPartnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      },
     });
 
     const totalPartners = await this.prisma.user.count({
-      where: { role: "PARTNER" },
+      where: {
+        role: loggedInUser.role === "PARTNER" ? "SALES" : "PARTNER",
+        createdByPartnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      },
     });
 
     const totalCompanies = await this.prisma.insuranceCompany.count();
 
-    const totalDocuments = await this.prisma.insuranceDocument.count();
+    const totalDocuments = await this.prisma.insuranceDocument.count({
+      where: {
+        partnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      },
+    });
 
     const totalConfirmed = await this.prisma.insuranceDocument.count({
-      where: { confirmed: true },
+      where: {
+        confirmed: true,
+        partnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      },
     });
 
     const totalNotConfirmed = await this.prisma.insuranceDocument.count({
-      where: { confirmed: false },
+      where: {
+        confirmed: false,
+        partnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      },
     });
 
     const companiesDocuments = await this.prisma.insuranceDocument.groupBy({
       by: ["companyId"],
+      _count: {
+        id: true,
+      },
+    });
+
+    const salesDocuments = await this.prisma.insuranceDocument.groupBy({
+      by: ["salesId"],
       _count: {
         id: true,
       },
@@ -253,14 +282,35 @@ export class CompanyService {
       },
     });
 
+    const sales = await this.prisma.user.findMany({
+      where: {
+        role: "SALES",
+        createdByPartnerId:
+          loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
     const documentsMap = new Map(
       companiesDocuments.map((c) => [c.companyId, c._count.id]),
+    );
+
+    const documentsSalesMap = new Map(
+      salesDocuments.map((c) => [c.salesId, c._count.id]),
     );
 
     const companiesChart = companies.map((company) => ({
       companyId: company.id,
       companyName: company.name,
       documents: documentsMap.get(company.id) || 0,
+    }));
+
+    const salesChart = sales.map((company) => ({
+      companyId: company.id,
+      companyName: company.name,
+      documents: documentsSalesMap.get(company.id) || 0,
     }));
 
     return {
@@ -270,7 +320,8 @@ export class CompanyService {
       totalDocuments,
       totalConfirmed,
       totalNotConfirmed,
-      companiesChart,
+      companiesChart:
+        loggedInUser.role === "PARTNER" ? salesChart : companiesChart,
     };
   }
 }

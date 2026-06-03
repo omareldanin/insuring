@@ -7,17 +7,15 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UploadedFile,
   UseGuards,
 } from "@nestjs/common";
-import {
-  CreateCompanyDto,
-  UpdateCompanyDto,
-  UpdateCompanyPlanDto,
-} from "./company.dto";
+import { CreateCompanyDto, UpdateCompanyPlanDto } from "./company.dto";
 import { CompanyService } from "./company.service";
 import { JwtAuthGuard } from "src/middlewares/jwt-auth.guard";
 import { UploadImageInterceptor } from "src/middlewares/file-upload.interceptor";
+import { LoggedInUserType } from "../auth/auth.dto";
 
 @Controller("insurance-companies")
 export class CompanyController {
@@ -60,8 +58,10 @@ export class CompanyController {
 
   @UseGuards(JwtAuthGuard)
   @Get("statistics")
-  getStatistics() {
-    return this.service.getStatistics();
+  getStatistics(@Req() req) {
+    const loggedInUser = req.user as LoggedInUserType;
+
+    return this.service.getStatistics(loggedInUser);
   }
 
   @UseGuards(JwtAuthGuard)
