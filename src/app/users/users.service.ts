@@ -117,6 +117,7 @@ export class UsersService {
       size: number;
       phone?: string;
       name?: string;
+      partnerId?: string;
     },
     loggedInUser: LoggedInUserType,
   ) {
@@ -128,7 +129,11 @@ export class UsersService {
       name: filters.name ? { contains: filters.name } : undefined,
       phone: filters.phone ? { contains: filters.phone } : undefined,
       createdByPartnerId:
-        loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+        loggedInUser.role === "PARTNER"
+          ? loggedInUser.id
+          : filters.partnerId
+            ? +filters.partnerId
+            : undefined,
       deleted: false,
     };
 

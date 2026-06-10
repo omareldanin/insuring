@@ -290,6 +290,7 @@ export class DocumentController {
     @Query("companyId") companyId?: string,
     @Query("planId") planId?: string,
     @Query("userId") userId?: string,
+    @Query("partnerId") partnerId?: string,
     @Query("confirmed") confirmed?: string,
     @Query("insuranceType") insuranceType?: InsuranceTypeEnum,
   ) {
@@ -306,6 +307,7 @@ export class DocumentController {
         companyId: companyId ? Number(companyId) : undefined,
         planId: planId ? Number(planId) : undefined,
         userId: userId ? Number(userId) : undefined,
+        partnerId: partnerId ? Number(partnerId) : undefined,
         confirmed: confirmed !== undefined ? confirmed === "true" : undefined,
         insuranceType,
       },

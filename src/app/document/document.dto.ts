@@ -310,4 +310,8 @@ export class updateDocument {
   @IsOptional()
   @IsString()
   link: string;
+
+  @IsOptional()
+  @IsString()
+  value: string;
 }

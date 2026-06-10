@@ -20,6 +20,7 @@ import { InsuranceTypeEnum, Prisma } from "@prisma/client";
 import { NotificationService } from "../notification/notification.service";
 import { EmailService } from "../email/email.service";
 import { LoggedInUserType } from "../auth/auth.dto";
+import { confirmDoc } from "../lib/confirm_doc";
 
 @Injectable()
 export class DocumentService {
@@ -411,6 +412,7 @@ export class DocumentService {
       companyId?: number;
       planId?: number;
       userId?: number;
+      partnerId?: number;
       confirmed?: boolean;
       insuranceType?: InsuranceTypeEnum;
     },
@@ -425,7 +427,12 @@ export class DocumentService {
       confirmed: query.confirmed,
       insuranceType: query.insuranceType,
       userId: loggedInUser.role === "CLIENT" ? loggedInUser.id : undefined,
-      partnerId: loggedInUser.role === "PARTNER" ? loggedInUser.id : undefined,
+      partnerId:
+        loggedInUser.role === "PARTNER"
+          ? loggedInUser.id
+          : query.partnerId
+            ? query.partnerId
+            : undefined,
       salesId: loggedInUser.role === "SALES" ? loggedInUser.id : undefined,
     };
 
@@ -716,6 +723,9 @@ export class DocumentService {
   }
 
   async confirmDocument(id: number, dto: updateDocument) {
+    const startDate = new Date(dto.startDate);
+    const endDate = new Date(dto.endDate);
+    const value = +dto.value;
     const document = await this.prisma.insuranceDocument.update({
       where: { id },
       data: {
@@ -736,6 +746,13 @@ export class DocumentService {
       title: `تأكيد الوثيقه`,
       content: `تم تأكيد الوثيقه الخاص بك رقم الوثيقه ${document.documentNumber}`,
       userId: document.userId,
+    });
+
+    await confirmDoc(document.user.phone, {
+      documentNumber: document.documentNumber || "",
+      startDate: startDate.toDateString() || "",
+      endDate: endDate.toDateString() || "",
+      value: value.toLocaleString() || "",
     });
 
     return document;
