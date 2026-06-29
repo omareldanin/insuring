@@ -124,8 +124,6 @@ export class AuthService {
   }
 
   async verifyPhone(dto: { phone: string; code: string }) {
-    console.log(dto);
-
     const otp = await this.prisma.phoneOtp.findFirst({
       where: {
         AND: [
@@ -136,8 +134,6 @@ export class AuthService {
         ],
       },
     });
-
-    console.log(otp);
 
     if (!otp) throw new BadRequestException("Invalid OTP");
 
@@ -299,12 +295,11 @@ export class AuthService {
     if (!user) return { message: "If user exists, OTP sent" };
 
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("code", code);
 
-    await this.prisma.passwordReset.create({
+    await this.prisma.phoneOtp.create({
       data: {
-        userId: user.id,
-        token: code,
+        phone: user.phone,
+        code,
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
       },
     });
