@@ -60,7 +60,7 @@ export class CarsController {
     return this.service.getCars(query);
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Post("upload")
   @UseInterceptors(FileInterceptor("file"))
   uploadCars(@UploadedFile() file: Express.Multer.File) {
