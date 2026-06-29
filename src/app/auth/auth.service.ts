@@ -316,16 +316,16 @@ export class AuthService {
 
     if (!user) throw new BadRequestException("Invalid request");
 
-    const reset = await this.prisma.passwordReset.findFirst({
-      where: {
-        userId: user.id,
-        token: dto.code,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
-    });
+    // const reset = await this.prisma.passwordReset.findFirst({
+    //   where: {
+    //     userId: user.id,
+    //     token: dto.code,
+    //     used: false,
+    //     expiresAt: { gt: new Date() },
+    //   },
+    // });
 
-    if (!reset) throw new BadRequestException("Invalid OTP");
+    // if (!reset) throw new BadRequestException("Invalid OTP");
 
     const hashedPassword = await bcrypt.hash(
       dto.newPassword + env.PASSWORD_SALT,
@@ -333,10 +333,10 @@ export class AuthService {
     );
 
     await this.prisma.$transaction([
-      this.prisma.passwordReset.update({
-        where: { id: reset.id },
-        data: { used: true },
-      }),
+      // this.prisma.passwordReset.update({
+      //   where: { id: reset.id },
+      //   data: { used: true },
+      // }),
       this.prisma.user.update({
         where: { id: user.id },
         data: {
