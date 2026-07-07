@@ -893,7 +893,7 @@ export class DocumentService {
                   name: true,
                   email: true,
                   logo: true,
-                  link: true,
+                  refundEmail: true,
                 },
               },
             },
