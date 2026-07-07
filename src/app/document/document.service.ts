@@ -56,7 +56,6 @@ export class DocumentService {
     let userId = loggedInUser.id;
     let partnerId: number | undefined = undefined;
     let salesId: number | undefined = undefined;
-    console.log(data);
 
     const rule = await this.prisma.carRules.findUnique({
       where: {

@@ -4,12 +4,12 @@ import * as nodemailer from "nodemailer";
 @Injectable()
 export class EmailService {
   private transporter = nodemailer.createTransport({
-    host: "smtp.hostinger.com",
-    port: 465,
+    host: process.env.MAIL_HOST || "smtp.hostinger.com",
+    port: Number(process.env.MAIL_PORT) || 465,
     secure: true,
     auth: {
-      user: "info@bfibrokerage.com",
-      pass: "ekdup7Machimomfod#",
+      user: process.env.MAIL_USER,
+      pass: process.env.MAIL_PASS,
     },
   });
 
@@ -25,6 +25,7 @@ export class EmailService {
       driveLicence: string;
     },
   ) {
+    console.log("MAIL_USER at boot:", process.env.MAIL_USER);
     return this.transporter.sendMail({
       from: `"Insurify" <${process.env.MAIL_USER}>`,
       to: companyEmail,
