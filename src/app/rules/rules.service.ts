@@ -359,7 +359,7 @@ export class RulesService {
             name: true,
             logo: true,
             arName: true,
-            link: true,
+            refundEmail: true,
             companyPlans: {
               where: {
                 planId: dto.planId,
@@ -447,7 +447,7 @@ export class RulesService {
               name: true,
               arName: true,
               logo: true,
-              link: true,
+              refundEmail: true,
               companyPlans: {
                 where: { planId },
                 select: { features: true, arFeatures: true },
@@ -521,7 +521,7 @@ export class RulesService {
             id: true,
             name: true,
             logo: true,
-            link: true,
+            refundEmail: true,
             companyPlans: {
               where: {
                 planId: dto.planId,
