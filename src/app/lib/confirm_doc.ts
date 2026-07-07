@@ -12,6 +12,7 @@ export async function confirmDoc(
     startDate: string;
     endDate: string;
     value: string;
+    payment: string;
   },
 ) {
   const to = normalizePhone(rawPhone);
@@ -36,6 +37,7 @@ export async function confirmDoc(
             { type: "text", text: data.startDate },
             { type: "text", text: data.endDate },
             { type: "text", text: data.value },
+            { type: "text", text: data.payment },
           ],
         },
       ],

@@ -309,9 +309,9 @@ model InsuranceDocument {
   companyId      Int
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
-  company        InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: NoAction)
-  plan           InsurancePlan                @relation(fields: [planId], references: [id], onDelete: NoAction)
-  user           User                         @relation(fields: [userId], references: [id], onDelete: NoAction)
+  company        InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  plan           InsurancePlan                @relation(fields: [planId], references: [id], onDelete: SetNull)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: SetNull)
   carInfo        InsuranceDocumentCarInfo?
   healthInfo     InsuranceDocumentHealthInfo?
   lifeInfo       InsuranceDocumentLifeInfo?
@@ -365,7 +365,7 @@ model InsuranceDocumentCarInfo {
   insuranceDocumentId Int               @unique
   carYear             CarYear?          @relation(fields: [carYearId], references: [id])
   insuranceDocument   InsuranceDocument @relation(fields: [insuranceDocumentId], references: [id], onDelete: Cascade)
-  rule                CarRules          @relation(fields: [ruleId], references: [id], onDelete: NoAction)
+  rule                CarRules          @relation(fields: [ruleId], references: [id], onDelete: SetNull)
 }
 
 model InsuranceDocumentLifeInfo {
@@ -377,7 +377,7 @@ model InsuranceDocumentLifeInfo {
   ruleId              Int
   insuranceDocumentId Int               @unique
   insuranceDocument   InsuranceDocument @relation(fields: [insuranceDocumentId], references: [id], onDelete: Cascade)
-  rule                LifeRules         @relation(fields: [ruleId], references: [id], onDelete: NoAction)
+  rule                LifeRules         @relation(fields: [ruleId], references: [id], onDelete: SetNull)
 }
 
 model InsuranceDocumentHealthInfo {
@@ -402,7 +402,7 @@ model Member {
   insuranceDocumentHealthInfoId Int?
   ruleId                        Int
   insuranceDocumentHealthInfo   InsuranceDocumentHealthInfo? @relation(fields: [insuranceDocumentHealthInfoId], references: [id], onDelete: Cascade)
-  rule                          HealthRules                  @relation(fields: [ruleId], references: [id], onDelete: NoAction)
+  rule                          HealthRules                  @relation(fields: [ruleId], references: [id], onDelete: SetNull)
 }
 
 model Offers {

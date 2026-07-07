@@ -33,7 +33,7 @@ export const documentSelect = {
       name: true,
       email: true,
       logo: true,
-      link: true,
+      refundEmail: true,
     },
   },
   plan: {

@@ -29,7 +29,26 @@ export class DocumentService {
     private notificationsService: NotificationService,
     private emailService: EmailService,
   ) {}
+  buildPaymentMessageAr(company: {
+    paymentType: string | null;
+    paymentLink: string | null;
+    bankName: string | null;
+    accountNumber: string | null;
+  }): string {
+    if (company.paymentType === "PAYMENT_LINK" && company.paymentLink) {
+      return `يرجى إتمام الدفع عبر الرابط التالي: ${company.paymentLink}`;
+    }
 
+    if (
+      company.paymentType === "BANK_ACCOUNT" &&
+      company.bankName &&
+      company.accountNumber
+    ) {
+      return `يرجى التحويل على الحساب البنكي التالي:\nالبنك: ${company.bankName}\nرقم الحساب: ${company.accountNumber}`;
+    }
+
+    return "سيتم التواصل معك لاحقاً بخصوص طريقة الدفع.";
+  }
   async createCarDocument(
     data: createCarDocumentDto,
     loggedInUser: LoggedInUserType,
@@ -739,6 +758,14 @@ export class DocumentService {
         user: true,
         userId: true,
         documentNumber: true,
+        company: {
+          select: {
+            paymentType: true,
+            paymentLink: true,
+            bankName: true,
+            accountNumber: true,
+          },
+        },
       },
     });
 
@@ -748,11 +775,14 @@ export class DocumentService {
       userId: document.userId,
     });
 
+    const paymentMessage = this.buildPaymentMessageAr(document.company);
+
     await confirmDoc(document.user.phone, {
       documentNumber: document.documentNumber || "",
       startDate: startDate.toDateString() || "",
       endDate: endDate.toDateString() || "",
       value: value.toLocaleString() || "",
+      payment: paymentMessage,
     });
 
     return document;
@@ -809,10 +839,31 @@ export class DocumentService {
   async createRefund(dto: CreateRefundDto) {
     const document = await this.prisma.insuranceDocument.findUnique({
       where: { id: dto.documentId },
+      include: {
+        company: true,
+        user: true,
+      },
     });
 
     if (!document) {
       throw new NotFoundException("Document not found");
+    }
+
+    if (document.company?.refundEmail) {
+      await this.emailService.sendCompanyRefundDocumentEmail(
+        document.company?.refundEmail,
+        {
+          documentId: document.documentNumber,
+          carNumber: dto.carNumber,
+          description: dto.description,
+          clientName: document.user.name,
+          clientPhone: document.user.phone,
+          companyName: document.company.name,
+          idImage: dto.idImage,
+          carLicence: dto.carLicence,
+          driveLicence: dto.driveLicence,
+        },
+      );
     }
 
     return this.prisma.refund.create({
