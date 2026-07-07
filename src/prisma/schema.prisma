@@ -14,6 +14,11 @@ enum UserRole {
   SALES
 }
 
+enum PaymentType {
+  PAYMENT_LINK
+  BANK_ACCOUNT
+}
+
 enum UserGender {
   male
   female
@@ -150,15 +155,22 @@ model InsurancePlan {
 }
 
 model InsuranceCompany {
-  id                 Int                 @id @default(autoincrement())
-  name               String              @unique
-  arName             String?
-  logo               String?
-  link               String?
-  email              String              @unique
-  ruleType           CarRuleType         @default(RANGE)
-  companyType        CompanyTypeEnum
-  insuranceTypes     InsuranceTypeEnum[]
+  id             Int                 @id @default(autoincrement())
+  name           String              @unique
+  arName         String?
+  logo           String?
+  refundEmail    String?
+  email          String              @unique
+  ruleType       CarRuleType         @default(RANGE)
+  companyType    CompanyTypeEnum
+  insuranceTypes InsuranceTypeEnum[]
+
+  // Payment method
+  paymentType   PaymentType?
+  paymentLink   String?
+  bankName      String?
+  accountNumber String?
+
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   carRules           CarRules[]

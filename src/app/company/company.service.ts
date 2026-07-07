@@ -10,11 +10,40 @@ import {
   UpdateCompanyPlanDto,
 } from "./company.dto";
 import { LoggedInUserType } from "../auth/auth.dto";
+import { PaymentType } from "@prisma/client";
 
 @Injectable()
 export class CompanyService {
   constructor(private prisma: PrismaService) {}
 
+  // helper inside CompanyService
+  private buildPaymentData(dto: CreateCompanyDto) {
+    if (!dto.paymentType) {
+      return {
+        paymentType: null,
+        paymentLink: null,
+        bankName: null,
+        accountNumber: null,
+      };
+    }
+
+    if (dto.paymentType === PaymentType.PAYMENT_LINK) {
+      return {
+        paymentType: PaymentType.PAYMENT_LINK,
+        paymentLink: dto.paymentLink,
+        bankName: null,
+        accountNumber: null,
+      };
+    }
+
+    // BANK_ACCOUNT
+    return {
+      paymentType: PaymentType.BANK_ACCOUNT,
+      paymentLink: null,
+      bankName: dto.bankName,
+      accountNumber: dto.accountNumber,
+    };
+  }
   /* ================= CREATE COMPANY ================= */
   async create(dto: CreateCompanyDto) {
     const emailExists = await this.prisma.insuranceCompany.findUnique({
@@ -31,10 +60,11 @@ export class CompanyService {
         name: dto.name,
         arName: dto.arName,
         logo: dto.logo,
-        link: dto.link,
+        refundEmail: dto.link,
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
+        ...this.buildPaymentData(dto),
         companyPlans: {
           create: dto.plans.map((plan) => ({
             planId: plan.planId,
@@ -87,9 +117,13 @@ export class CompanyService {
           arName: true,
           email: true,
           logo: true,
-          link: true,
+          refundEmail: true,
           companyType: true,
           insuranceTypes: true,
+          paymentType: true,
+          paymentLink: true,
+          bankName: true,
+          accountNumber: true,
           ruleType: true,
           createdAt: true,
         },
@@ -119,10 +153,14 @@ export class CompanyService {
         arName: true,
         email: true,
         logo: true,
-        link: true,
+        refundEmail: true,
         companyType: true,
         insuranceTypes: true,
         ruleType: true,
+        paymentType: true,
+        paymentLink: true,
+        bankName: true,
+        accountNumber: true,
         companyPlans: {
           select: {
             id: true,
@@ -150,13 +188,13 @@ export class CompanyService {
         name: dto.name,
         arName: dto.arName,
         logo: dto.logo,
-        link: dto.link,
+        refundEmail: dto.link,
         email: dto.email,
         companyType: dto.companyType,
         insuranceTypes: dto.insuranceTypes,
+        ...this.buildPaymentData(dto),
         companyPlans: {
           deleteMany: {},
-
           create: dto.plans.map((plan) => ({
             planId: plan.planId,
             features: plan.features,
