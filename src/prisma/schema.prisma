@@ -309,15 +309,15 @@ model InsuranceDocument {
   companyId      Int
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
-  company        InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: SetNull)
-  plan           InsurancePlan                @relation(fields: [planId], references: [id], onDelete: SetNull)
-  user           User                         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company        InsuranceCompany             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan           InsurancePlan                @relation(fields: [planId], references: [id], onDelete: Cascade)
+  user           User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
   carInfo        InsuranceDocumentCarInfo?
   healthInfo     InsuranceDocumentHealthInfo?
   lifeInfo       InsuranceDocumentLifeInfo?
   renewRequests  InsuranceDocumentRenew[]
   refunds        Refund[]
-  offer          Offers?                      @relation(fields: [offerId], references: [id], onDelete: SetNull)
+  offer          Offers?                      @relation(fields: [offerId], references: [id], onDelete: Cascade)
   offerId        Int?
 
   @@index([userId, companyId])
@@ -427,7 +427,7 @@ model DiscountCard {
   paidKey   String?
 
   userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: NoAction)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

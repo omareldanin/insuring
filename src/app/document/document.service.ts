@@ -20,7 +20,7 @@ import { InsuranceTypeEnum, Prisma } from "@prisma/client";
 import { NotificationService } from "../notification/notification.service";
 import { EmailService } from "../email/email.service";
 import { LoggedInUserType } from "../auth/auth.dto";
-import { confirmDoc } from "../lib/confirm_doc";
+import { confirmDoc, confirmRefund } from "../lib/confirm_doc";
 
 @Injectable()
 export class DocumentService {
@@ -882,6 +882,42 @@ export class DocumentService {
   }
 
   async updateRefund(id: number, dto: UpdateRefundDto) {
+    const refund = await this.prisma.refund.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        insuranceDocument: {
+          select: {
+            documentNumber: true,
+            user: {
+              select: {
+                id: true,
+                phone: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    await this.notificationsService.sendNotification({
+      title: "تحديث طلب التعويض",
+      content: `${dto.status} - ${dto.description}`,
+      userId: refund.insuranceDocument.user.id,
+    });
+    const statusAr = {
+      processing: "تحت المعالجة",
+      confirmed: "تم الموافقة علي التعويض",
+      canceled: "تم الرفض",
+    };
+
+    await confirmRefund(refund.insuranceDocument.user.phone, {
+      documentNumber: refund.insuranceDocument.documentNumber || "",
+      status: statusAr[dto.status] || dto.status,
+      notes: dto.description || "لا يوجد",
+    });
+
     return this.prisma.refund.update({
       where: { id },
       data: {

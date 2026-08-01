@@ -41,6 +41,8 @@ export class AuthController {
   @UseInterceptors(NoFilesInterceptor())
   @Post("/login")
   signIn(@Body() signInDto: LoginDto) {
+    console.log(signInDto);
+
     return this.authService.login(signInDto);
   }
 

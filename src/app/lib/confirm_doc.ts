@@ -55,6 +55,52 @@ export async function confirmDoc(
   return res.data; // يحتوي wamid
 }
 
+export async function confirmRefund(
+  rawPhone: string,
+  data: {
+    documentNumber: string;
+    status: string;
+    notes: string;
+  },
+) {
+  const to = normalizePhone(rawPhone);
+  if (!to) {
+    throw new Error(`Invalid phone number: ${rawPhone}`);
+  }
+
+  const url = `https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`;
+
+  const payload = {
+    messaging_product: "whatsapp",
+    to,
+    type: "template",
+    template: {
+      name: "confirm_refund",
+      language: { code: "ar" },
+      components: [
+        {
+          type: "body",
+          parameters: [
+            { type: "text", text: data.documentNumber },
+            { type: "text", text: data.status },
+            { type: "text", text: data.notes },
+          ],
+        },
+      ],
+    },
+  };
+
+  const res = await axios.post(url, payload, {
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    timeout: 15000,
+  });
+
+  return res.data; // يحتوي wamid
+}
+
 export async function sendWelcomeMessage(
   rawPhone: string,
   username: string,

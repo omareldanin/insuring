@@ -134,4 +134,63 @@ export class NotificationService {
     });
     return { message: "success" };
   }
+  async sendNotificationToAll(data: {
+    title: string;
+    content: string;
+    role?: UserRole; // optional: target only a specific role
+  }) {
+    // 1. Get all users (optionally filtered by role) who have at least one token
+    const users = await this.prisma.user.findMany({
+      where: {
+        ...(data.role ? { role: data.role } : {}),
+        fcm: { isEmpty: false },
+      },
+      select: { id: true, fcm: true },
+    });
+
+    // 2. Flatten every user's tokens into one list
+    const tokens = users.flatMap((u) => u.fcm);
+
+    // 3. Send in batches of 500 (FCM multicast limit)
+    let successCount = 0;
+    let failureCount = 0;
+
+    for (let i = 0; i < tokens.length; i += 500) {
+      const batch = tokens.slice(i, i + 500);
+
+      const response = await admin.messaging().sendEachForMulticast({
+        notification: { title: data.title, body: data.content },
+        tokens: batch,
+      });
+
+      successCount += response.successCount;
+      failureCount += response.failureCount;
+
+      response.responses.forEach((res, idx) => {
+        if (!res.success) {
+          console.warn(
+            `❌ Failed to send to token ${batch[idx]}:`,
+            res.error?.message,
+          );
+        }
+      });
+    }
+
+    // 4. Save one notification row per user in DB
+    const results = await this.prisma.notification.createMany({
+      data: users.map((u) => ({
+        title: data.title,
+        content: data.content,
+        userId: u.id,
+      })),
+    });
+
+    return {
+      message: "success",
+      sentTo: users.length,
+      successCount,
+      failureCount,
+      saved: results.count,
+    };
+  }
 }
