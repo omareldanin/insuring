@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -32,6 +33,8 @@ import {
 } from "./document.dto";
 import { InsuranceTypeEnum } from "@prisma/client";
 import { NoFilesInterceptor } from "@nestjs/platform-express";
+import { UpdateDocumentDto } from "./update-document.dto";
+import { ParseDocumentDataPipe } from "./parse-json-body.pipe";
 
 @Controller("document")
 export class DocumentController {
@@ -398,5 +401,34 @@ export class DocumentController {
   @Patch(":id")
   update(@Param("id", ParseIntPipe) id: number, @Body() body: any) {
     return this.service.updateDocument(id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("update/:id")
+  @UploadFieldsInterceptor(
+    [
+      { name: "idImage", maxCount: 1 },
+      { name: "carLicence", maxCount: 1 },
+      { name: "driveLicence", maxCount: 1 },
+    ],
+    "documents",
+  )
+  async updateInfo(
+    @Param("id", ParseIntPipe) id: number,
+    @Body("data", ParseDocumentDataPipe) dto: UpdateDocumentDto, // <-- 'data'
+    @UploadedFiles()
+    files: {
+      idImage?: Express.Multer.File[];
+      carLicence?: Express.Multer.File[];
+      driveLicence?: Express.Multer.File[];
+    },
+  ) {
+    return this.service.updateDocumentInfo(id, dto, files);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(":id")
+  async remove(@Param("id", ParseIntPipe) id: number) {
+    return this.service.deleteDocument(id);
   }
 }

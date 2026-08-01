@@ -21,7 +21,9 @@ import { NotificationService } from "../notification/notification.service";
 import { EmailService } from "../email/email.service";
 import { LoggedInUserType } from "../auth/auth.dto";
 import { confirmDoc, confirmRefund } from "../lib/confirm_doc";
-
+import { UpdateDocumentDto } from "./update-document.dto";
+import { promises as fs } from "fs";
+import { join } from "path";
 @Injectable()
 export class DocumentService {
   constructor(
@@ -29,6 +31,11 @@ export class DocumentService {
     private notificationsService: NotificationService,
     private emailService: EmailService,
   ) {}
+  // turns a multer file into the stored relative path
+  private filePath(file?: Express.Multer.File): string | undefined {
+    return file ? `/uploads/documents/${file.filename}` : undefined;
+  }
+
   buildPaymentMessageAr(company: {
     paymentType: string | null;
     paymentLink: string | null;
@@ -1012,7 +1019,6 @@ export class DocumentService {
   }) {
     const page = Number(query.page) || 1;
     const size = Number(query.size) || 10;
-    console.log(query);
 
     const where: Prisma.RefundWhereInput = {
       insuranceDocumentId: query.documentId,
@@ -1046,8 +1052,6 @@ export class DocumentService {
       this.prisma.refund.count({ where }),
     ]);
 
-    console.log(data);
-
     return {
       data,
       total,
@@ -1055,5 +1059,199 @@ export class DocumentService {
       size,
       totalPages: Math.ceil(total / size),
     };
+  }
+
+  async updateDocumentInfo(
+    id: number,
+    dto: UpdateDocumentDto,
+    files?: {
+      idImage?: Express.Multer.File[];
+      carLicence?: Express.Multer.File[];
+      driveLicence?: Express.Multer.File[];
+    },
+  ) {
+    const existing = await this.prisma.insuranceDocument.findUnique({
+      where: { id },
+      select: { id: true, insuranceType: true },
+    });
+    if (!existing) throw new NotFoundException("الوثيقة غير موجودة");
+
+    // merge uploaded files into the matching info block
+    if (files) {
+      const idImage = this.filePath(files.idImage?.[0]);
+      const carLicence = this.filePath(files.carLicence?.[0]);
+      const driveLicence = this.filePath(files.driveLicence?.[0]);
+
+      if (existing.insuranceType === "CAR") {
+        dto.carInfo = {
+          ...dto.carInfo,
+          ...(idImage && { idImage }),
+          ...(carLicence && { carLicence }),
+          ...(driveLicence && { driveLicence }),
+        };
+      }
+
+      if (existing.insuranceType === "LIFE" && idImage) {
+        dto.lifeInfo = { ...dto.lifeInfo, idImage };
+      }
+    }
+
+    // 2. Build the base document update (only fields that were sent)
+    const data: Prisma.InsuranceDocumentUpdateInput = {};
+
+    if (dto.startDate !== undefined) data.startDate = new Date(dto.startDate);
+    if (dto.endDate !== undefined) data.endDate = new Date(dto.endDate);
+    if (dto.confirmed !== undefined) data.confirmed = dto.confirmed;
+    if (dto.paid !== undefined) data.paid = dto.paid;
+    if (dto.paidKey !== undefined) data.paidKey = dto.paidKey;
+    if (dto.documentNumber !== undefined)
+      data.documentNumber = dto.documentNumber;
+
+    // 3. Nested update for the matching type only
+    if (dto.carInfo && existing.insuranceType === "CAR") {
+      data.carInfo = { update: dto.carInfo };
+    }
+
+    if (dto.lifeInfo && existing.insuranceType === "LIFE") {
+      data.lifeInfo = { update: dto.lifeInfo };
+    }
+
+    if (dto.healthInfo && existing.insuranceType === "HEALTH") {
+      const { members, ...healthFields } = dto.healthInfo;
+      data.healthInfo = { update: healthFields };
+    }
+
+    // build a reusable list, e.g. up to 20 members
+    const memberFileFields = Array.from({ length: 20 }, (_, i) => [
+      { name: `memberImage_${i}`, maxCount: 1 },
+      { name: `memberIdImage_${i}`, maxCount: 1 },
+    ]).flat();
+
+    if (existing.insuranceType === "HEALTH" && dto.healthInfo?.members) {
+      dto.healthInfo.members = dto.healthInfo.members.map((member, i) => {
+        const image = this.filePath(files?.[`memberImage_${i}`]?.[0]);
+        const idImage = this.filePath(files?.[`memberIdImage_${i}`]?.[0]);
+        return {
+          ...member,
+          ...(image && { image }),
+          ...(idImage && { idImage }),
+        };
+      });
+    }
+
+    // 4. Run document (+ its info) update and member updates in one transaction
+    return this.prisma.$transaction(async (tx) => {
+      const document = await tx.insuranceDocument.update({
+        where: { id },
+        data,
+        include: {
+          carInfo: true,
+          lifeInfo: true,
+          healthInfo: { include: { members: true } },
+        },
+      });
+
+      // Members are updated one-by-one since each has its own id
+      if (
+        existing.insuranceType === "HEALTH" &&
+        dto.healthInfo?.members?.length
+      ) {
+        // guard: only allow updating members that belong to this document
+        const ownMemberIds = new Set(
+          document.healthInfo?.members.map((m) => m.id) ?? [],
+        );
+
+        for (const member of dto.healthInfo.members) {
+          if (!ownMemberIds.has(member.id)) {
+            throw new BadRequestException(
+              `العضو رقم ${member.id} لا ينتمي لهذه الوثيقة`,
+            );
+          }
+
+          const { id: memberId, ...memberFields } = member;
+          await tx.member.update({
+            where: { id: memberId },
+            data: memberFields,
+          });
+        }
+
+        // re-fetch so the response reflects updated members
+        return tx.insuranceDocument.findUnique({
+          where: { id },
+          include: {
+            carInfo: true,
+            lifeInfo: true,
+            healthInfo: { include: { members: true } },
+          },
+        });
+      }
+
+      return document;
+    });
+  }
+  async deleteDocument(id: number) {
+    const existing = await this.prisma.insuranceDocument.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        confirmed: true,
+        carInfo: {
+          select: { idImage: true, carLicence: true, driveLicence: true },
+        },
+        lifeInfo: { select: { idImage: true } },
+        healthInfo: {
+          select: {
+            companyTaxRegister: true,
+            companyCommercialRegister: true,
+            members: { select: { image: true, idImage: true } },
+          },
+        },
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException("الوثيقة غير موجودة");
+    }
+
+    // block deletion of confirmed documents
+    if (existing.confirmed) {
+      throw new BadRequestException("لا يمكن حذف وثيقة تم تأكيدها");
+    }
+
+    // delete the row — cascade removes carInfo/lifeInfo/healthInfo/members
+    await this.prisma.insuranceDocument.delete({ where: { id } });
+
+    // clean up uploaded files from disk (optional but recommended)
+    const paths: (string | null | undefined)[] = [
+      existing.carInfo?.idImage,
+      existing.carInfo?.carLicence,
+      existing.carInfo?.driveLicence,
+      existing.lifeInfo?.idImage,
+      existing.healthInfo?.companyTaxRegister,
+      existing.healthInfo?.companyCommercialRegister,
+      ...(existing.healthInfo?.members.flatMap((m) => [m.image, m.idImage]) ??
+        []),
+    ];
+
+    await this.removeFiles(paths);
+
+    return { message: "تم حذف الوثيقة بنجاح" };
+  }
+
+  // safely unlink a batch of stored files, ignoring missing ones
+  private async removeFiles(paths: (string | null | undefined)[]) {
+    await Promise.all(
+      paths
+        .filter((p): p is string => !!p)
+        .map(async (p) => {
+          // stored as "/uploads/documents/xxx" -> resolve to disk path
+          const filePath = join(process.cwd(), p.replace(/^\//, ""));
+          try {
+            await fs.unlink(filePath);
+          } catch {
+            // file already gone or never existed — ignore
+          }
+        }),
+    );
   }
 }
