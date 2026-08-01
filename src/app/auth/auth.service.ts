@@ -117,6 +117,7 @@ export class AuthService {
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
       },
     });
+    console.log("from otp");
 
     await sendOtpTemplate(phone, code);
 
@@ -196,6 +197,8 @@ export class AuthService {
     });
 
     if (!user.verified) {
+      console.log("verified", user.verified);
+
       await this.sendOtp(user.phone);
     }
 
@@ -303,6 +306,7 @@ export class AuthService {
         expiresAt: new Date(Date.now() + 5 * 60 * 1000),
       },
     });
+    console.log("from forget");
 
     await sendOtpTemplate(user.phone, code);
 
