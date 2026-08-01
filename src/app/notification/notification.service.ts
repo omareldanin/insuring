@@ -184,6 +184,8 @@ export class NotificationService {
         userId: u.id,
       })),
     });
+    console.log("successCount", successCount);
+    console.log("failureCount", failureCount);
 
     return {
       message: "success",

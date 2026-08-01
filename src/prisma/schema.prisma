@@ -335,23 +335,6 @@ model InsuranceDocumentRenew {
   insuranceDocumentId Int?
 }
 
-model Refund {
-  id Int @id @default(autoincrement())
-
-  status       String @default("processing")
-  carNumber    String
-  idImage      String
-  carLicence   String
-  driveLicence String
-  description  String
-
-  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
-  insuranceDocumentId Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model InsuranceDocumentCarInfo {
   id                  Int               @id @default(autoincrement())
   persitage           Float
@@ -403,6 +386,23 @@ model Member {
   ruleId                        Int
   insuranceDocumentHealthInfo   InsuranceDocumentHealthInfo? @relation(fields: [insuranceDocumentHealthInfoId], references: [id], onDelete: Cascade)
   rule                          HealthRules                  @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+}
+
+model Refund {
+  id Int @id @default(autoincrement())
+
+  status       String @default("processing")
+  carNumber    String
+  idImage      String
+  carLicence   String
+  driveLicence String
+  description  String
+
+  insuranceDocument   InsuranceDocument? @relation(fields: [insuranceDocumentId], references: [id])
+  insuranceDocumentId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Offers {

@@ -1012,6 +1012,7 @@ export class DocumentService {
   }) {
     const page = Number(query.page) || 1;
     const size = Number(query.size) || 10;
+    console.log(query);
 
     const where: Prisma.RefundWhereInput = {
       insuranceDocumentId: query.documentId,
@@ -1044,6 +1045,8 @@ export class DocumentService {
 
       this.prisma.refund.count({ where }),
     ]);
+
+    console.log(data);
 
     return {
       data,

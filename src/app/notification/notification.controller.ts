@@ -14,6 +14,7 @@ import { NotificationService } from "./notification.service";
 import { NoFilesInterceptor } from "@nestjs/platform-express";
 import { JwtAuthGuard } from "src/middlewares/jwt-auth.guard";
 import { LoggedInUserType } from "../auth/auth.dto";
+import { SendBroadcastDto } from "./notification.dto";
 
 @Controller("notification")
 export class NotificationController {
@@ -32,6 +33,12 @@ export class NotificationController {
     return this.notificationService.sendNotification(data);
   }
 
+  @UseInterceptors(NoFilesInterceptor())
+  @UseGuards(JwtAuthGuard)
+  @Post("broadcast")
+  async broadcast(@Body() dto: SendBroadcastDto) {
+    return this.notificationService.sendNotificationToAll(dto);
+  }
   @UseGuards(JwtAuthGuard)
   @Get("/getUserNotifications")
   getUserNotifications(
