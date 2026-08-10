@@ -33,7 +33,10 @@ export const documentSelect = {
       name: true,
       email: true,
       logo: true,
-      refundEmail: true,
+      paymentType: true,
+      paymentLink: true,
+      bankName: true,
+      accountNumber: true,
     },
   },
   plan: {

@@ -475,7 +475,6 @@ export class DocumentService {
       }),
       this.prisma.insuranceDocument.count({ where }),
     ]);
-    console.log(data);
 
     return {
       data,
