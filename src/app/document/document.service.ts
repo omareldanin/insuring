@@ -958,6 +958,8 @@ export class DocumentService {
       },
     };
 
+    console.log(query);
+
     const [data, total] = await this.prisma.$transaction([
       this.prisma.insuranceDocumentRenew.findMany({
         where,
@@ -1000,6 +1002,7 @@ export class DocumentService {
 
       this.prisma.insuranceDocumentRenew.count({ where }),
     ]);
+    console.log(data);
 
     return {
       data,
