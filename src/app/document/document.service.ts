@@ -971,32 +971,7 @@ export class DocumentService {
           paidKey: true,
           createdAt: true,
           insuranceDocument: {
-            select: {
-              id: true,
-              insuranceType: true,
-              startDate: true,
-              endDate: true,
-              documentNumber: true,
-              confirmed: true,
-              paid: true,
-              createdAt: true,
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  phone: true,
-                },
-              },
-              company: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  logo: true,
-                  refundEmail: true,
-                },
-              },
-            },
+            select: documentSelect,
           },
         },
       }),
