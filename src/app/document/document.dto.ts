@@ -17,6 +17,7 @@ export const documentSelect = {
   endDate: true,
   confirmed: true,
   paid: true,
+  paidImage: true,
   paidKey: true,
   documentNumber: true,
   createdAt: true,
@@ -104,6 +105,10 @@ export class createCarDocumentDto {
 
   @IsOptional()
   @IsString()
+  paidImage?: string;
+
+  @IsOptional()
+  @IsString()
   phone: string;
 
   @IsInt()
@@ -136,6 +141,10 @@ export class createLifeDocumentDto {
 
   @IsOptional()
   @IsString()
+  paidImage?: string;
+
+  @IsOptional()
+  @IsString()
   phone: string;
 
   @IsInt()
@@ -157,6 +166,10 @@ export class createHealthDocumentDto {
   @IsOptional()
   @IsString()
   paidKey: string;
+
+  @IsOptional()
+  @IsString()
+  paidImage?: string;
 
   @IsOptional()
   @IsString()
@@ -198,6 +211,10 @@ export class CreateGroupHealthDocDto {
   @IsOptional()
   @IsString()
   paidKey: string;
+
+  @IsOptional()
+  @IsString()
+  paidImage?: string;
 
   @IsString()
   @IsOptional()
@@ -261,6 +278,10 @@ export class UpdateRenewDto {
   @IsOptional()
   @IsString()
   paidKey?: string;
+
+  @IsOptional()
+  @IsString()
+  paidImage?: string;
 }
 
 export class CreateRefundDto {

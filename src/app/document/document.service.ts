@@ -571,6 +571,7 @@ export class DocumentService {
       data: {
         paidKey: data.paidKey,
         paid: data.paidKey ? true : false,
+        paidImage: data.paidImage,
       },
     });
 
@@ -601,6 +602,7 @@ export class DocumentService {
       data: {
         paidKey: data.paidKey,
         paid: data.paidKey ? true : false,
+        paidImage: data.paidImage,
       },
     });
 
@@ -631,6 +633,7 @@ export class DocumentService {
       data: {
         paidKey: data.paidKey,
         paid: data.paidKey ? true : false,
+        paidImage: data.paidImage,
       },
     });
 
@@ -679,6 +682,7 @@ export class DocumentService {
         data: {
           paidKey: data.paidKey,
           paid: data.paidKey ? true : false,
+          paidImage: data.paidImage,
         },
       });
 
@@ -842,6 +846,7 @@ export class DocumentService {
         confirmed: dto.confirmed,
         paidKey: dto.paidKey,
         paid: dto.paidKey ? true : undefined,
+        paidImage: dto.paidImage,
       },
     });
   }
@@ -969,6 +974,7 @@ export class DocumentService {
           confirmed: true,
           paid: true,
           paidKey: true,
+          paidImage: true,
           createdAt: true,
           insuranceDocument: {
             select: documentSelect,
@@ -1168,6 +1174,7 @@ export class DocumentService {
       return document;
     });
   }
+
   async deleteDocument(id: number) {
     const existing = await this.prisma.insuranceDocument.findUnique({
       where: { id },

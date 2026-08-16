@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -16,6 +17,7 @@ import {
 import { DocumentService } from "./document.service";
 import {
   UploadFieldsInterceptor,
+  UploadImageInterceptor,
   UploadMembersInterceptor,
 } from "src/middlewares/file-upload.interceptor";
 import { JwtAuthGuard } from "src/middlewares/jwt-auth.guard";
@@ -221,13 +223,17 @@ export class DocumentController {
     return this.service.createRenew(dto);
   }
 
-  @UseInterceptors(NoFilesInterceptor())
+  @UploadImageInterceptor("paymentImage")
   @UseGuards(JwtAuthGuard)
   @Patch("renew/:id")
   updateRenew(
     @Param("id", ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateRenewDto,
   ) {
+    if (file) {
+      dto.paidImage = "uploads/" + file.filename;
+    }
     return this.service.updateRenew(id, dto);
   }
 
@@ -396,10 +402,17 @@ export class DocumentController {
     return this.service.confirmDocumentRenew(id);
   }
 
-  @UseInterceptors(NoFilesInterceptor())
+  @UploadImageInterceptor("paymentImage")
   @UseGuards(JwtAuthGuard)
   @Patch(":id")
-  update(@Param("id", ParseIntPipe) id: number, @Body() body: any) {
+  update(
+    @Param("id", ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() body: any,
+  ) {
+    if (file) {
+      body.paidImage = "uploads/" + file.filename;
+    }
     return this.service.updateDocument(id, body);
   }
 

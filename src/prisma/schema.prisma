@@ -301,6 +301,7 @@ model InsuranceDocument {
   confirmed      Boolean                      @default(false)
   paid           Boolean                      @default(false)
   paidKey        String?
+  paidImage      String?
   documentNumber String?
   userId         Int
   partnerId      Int?
@@ -328,6 +329,7 @@ model InsuranceDocumentRenew {
   confirmed Boolean @default(false)
   paid      Boolean @default(false)
   paidKey   String?
+  paidImage String?
 
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
