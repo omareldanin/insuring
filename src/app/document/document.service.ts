@@ -570,7 +570,7 @@ export class DocumentService {
       where: { id },
       data: {
         paidKey: data.paidKey,
-        paid: data.paidKey ? true : false,
+        paid: data.paidKey || data.paidImage ? true : false,
         paidImage: data.paidImage,
       },
     });
@@ -601,7 +601,7 @@ export class DocumentService {
       where: { id },
       data: {
         paidKey: data.paidKey,
-        paid: data.paidKey ? true : false,
+        paid: data.paidKey || data.paidImage ? true : false,
         paidImage: data.paidImage,
       },
     });
@@ -632,7 +632,7 @@ export class DocumentService {
       where: { id },
       data: {
         paidKey: data.paidKey,
-        paid: data.paidKey ? true : false,
+        paid: data.paidKey || data.paidImage ? true : false,
         paidImage: data.paidImage,
       },
     });
@@ -681,7 +681,7 @@ export class DocumentService {
         where: { id },
         data: {
           paidKey: data.paidKey,
-          paid: data.paidKey ? true : false,
+          paid: data.paidKey || data.paidImage ? true : false,
           paidImage: data.paidImage,
         },
       });
@@ -845,7 +845,7 @@ export class DocumentService {
       data: {
         confirmed: dto.confirmed,
         paidKey: dto.paidKey,
-        paid: dto.paidKey ? true : undefined,
+        paid: dto.paidKey || dto.paidImage ? true : undefined,
         paidImage: dto.paidImage,
       },
     });
