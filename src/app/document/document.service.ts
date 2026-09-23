@@ -157,24 +157,24 @@ export class DocumentService {
       },
     });
 
-    // if (rule.insuranceCompany?.email) {
-    //   try {
-    //     await this.emailService.sendCompanyDocumentEmail(
-    //       rule.insuranceCompany.email,
-    //       {
-    //         documentId: document.id,
-    //         price: data.price,
-    //         finalPrice,
-    //         carYear: carYear.year.toString(),
-    //         idImage: data.idFile,
-    //         carLicence: data.carLicenseFile,
-    //         driveLicence: data.driveLicenseFile,
-    //       },
-    //     );
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // }
+    if (rule.insuranceCompany?.email) {
+      try {
+        await this.emailService.sendCompanyDocumentEmail(
+          rule.insuranceCompany.email,
+          {
+            documentId: document.id,
+            price: data.price,
+            finalPrice,
+            carYear: carYear.year.toString(),
+            idImage: data.idFile,
+            carLicence: data.carLicenseFile,
+            driveLicence: data.driveLicenseFile,
+          },
+        );
+      } catch (error) {
+        console.log(error);
+      }
+    }
     return document;
   }
 
