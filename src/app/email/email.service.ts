@@ -26,6 +26,7 @@ export class EmailService {
     },
   ) {
     console.log("MAIL_USER at boot:", process.env.MAIL_USER);
+    console.log("MAIL_USER at boot:", process.env.MAIL_PASS);
     return this.transporter.sendMail({
       from: `"Insurify" <${process.env.MAIL_USER}>`,
       to: companyEmail,
