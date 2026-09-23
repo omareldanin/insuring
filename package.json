@@ -46,6 +46,7 @@
     "dayjs": "^1.11.13",
     "dotenv": "^16.5.0",
     "firebase-admin": "^13.4.0",
+    "hostinger-mail-api-sdk": "^1.19.3",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^8.0.2",
     "passport": "^0.7.0",

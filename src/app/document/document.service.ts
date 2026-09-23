@@ -864,22 +864,22 @@ export class DocumentService {
       throw new NotFoundException("Document not found");
     }
 
-    // if (document.company?.refundEmail) {
-    //   await this.emailService.sendCompanyRefundDocumentEmail(
-    //     document.company?.refundEmail,
-    //     {
-    //       documentId: document.documentNumber,
-    //       carNumber: dto.carNumber,
-    //       description: dto.description,
-    //       clientName: document.user.name,
-    //       clientPhone: document.user.phone,
-    //       companyName: document.company.name,
-    //       idImage: dto.idImage,
-    //       carLicence: dto.carLicence,
-    //       driveLicence: dto.driveLicence,
-    //     },
-    //   );
-    // }
+    if (document.company?.refundEmail) {
+      await this.emailService.sendCompanyRefundDocumentEmail(
+        document.company?.refundEmail,
+        {
+          documentId: document.documentNumber,
+          carNumber: dto.carNumber,
+          description: dto.description,
+          clientName: document.user.name,
+          clientPhone: document.user.phone,
+          companyName: document.company.name,
+          idImage: dto.idImage,
+          carLicence: dto.carLicence,
+          driveLicence: dto.driveLicence,
+        },
+      );
+    }
 
     return this.prisma.refund.create({
       data: {

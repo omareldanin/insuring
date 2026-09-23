@@ -1,17 +1,169 @@
 import { Injectable } from "@nestjs/common";
-import * as nodemailer from "nodemailer";
+import { readFile } from "node:fs/promises";
+import { extname } from "node:path";
+import { AccountApi, Configuration, SendApi } from "hostinger-mail-api-sdk";
+import type { V1SendRequest } from "hostinger-mail-api-sdk";
+type EmailAttachment = {
+  filename: string;
+  path: string;
+  cid?: string;
+};
+
+type EmailMessage = {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+  attachments?: EmailAttachment[];
+};
+
+type MailClient = { api: SendApi; mailboxId: string };
 
 @Injectable()
 export class EmailService {
-  private transporter = nodemailer.createTransport({
-    host: process.env.MAIL_HOST || "smtp.hostinger.com",
-    port: Number(process.env.MAIL_PORT) || 465,
-    secure: true,
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS,
-    },
-  });
+  private mailClient?: Promise<MailClient>;
+
+  // Resolve the exact sender mailbox once per service instance.
+  // A failed lookup can be retried by a later request.
+  private getMailClient(): Promise<MailClient> {
+    if (!this.mailClient) {
+      this.mailClient = this.initializeMailClient().catch((error: unknown) => {
+        this.mailClient = undefined;
+        throw error;
+      });
+    }
+    return this.mailClient;
+  }
+
+  private async initializeMailClient(): Promise<MailClient> {
+    const token = process.env.MAIL_TOKEN?.trim();
+    const sender = process.env.MAIL_USER?.trim().toLowerCase();
+
+    if (!token)
+      throw new Error("MAIL_TOKEN is missing from the backend environment.");
+    if (!sender)
+      throw new Error(
+        "MAIL_USER must contain your Hostinger sender email address.",
+      );
+
+    const configuration = new Configuration({
+      accessToken: token,
+      baseOptions: { timeout: 30_000 },
+    });
+
+    const account = await new AccountApi(configuration)
+      .getCurrentAccount()
+      .catch((error: unknown) => {
+        throw this.mailApiError("mailbox lookup", error);
+      });
+
+    const mailbox = account.data.data.mailboxes.find(
+      (item) => item.address.toLowerCase() === sender,
+    );
+
+    if (!mailbox) {
+      throw new Error(
+        "MAIL_TOKEN cannot access the mailbox selected by MAIL_USER. Check the token's email order and the sender address in hPanel.",
+      );
+    }
+
+    return { api: new SendApi(configuration), mailboxId: mailbox.resourceId };
+  }
+
+  private mailApiError(operation: string, error: unknown): Error {
+    // Do not expose the SDK's full Axios error: it can contain Authorization headers.
+    const details = error as {
+      response?: { status?: number };
+      code?: string;
+    } | null;
+    const status = details?.response?.status;
+    const hints: Record<number, string> = {
+      401: "Check that MAIL_TOKEN is a valid Hostinger Mail API token.",
+      403: "The token is not authorized for this mailbox.",
+      422: "The email payload failed validation; check recipients and attachments.",
+      429: "The Hostinger Mail API rate limit was reached.",
+    };
+    const code = status ? `HTTP ${status}` : details?.code || "request failed";
+    return new Error(
+      `Hostinger Mail API ${operation} failed (${code}). ${status ? hints[status] || "" : "Check HTTPS connectivity to api.mail.hostinger.com."}`.trim(),
+    );
+  }
+
+  // Pass sources from your application's validated upload storage.
+  // Supports the filesystem paths, HTTP(S) URLs and data URIs used by Nodemailer.
+  private async prepareAttachment(attachment: EmailAttachment) {
+    const { path: source, filename, cid } = attachment;
+    if (!source) throw new Error(`Missing attachment source for ${filename}.`);
+
+    let bytes: Buffer;
+    let contentType: string | undefined;
+    const mimeTypes: Record<string, string> = {
+      ".jpg": "image/jpeg",
+      ".jpeg": "image/jpeg",
+      ".png": "image/png",
+      ".webp": "image/webp",
+      ".gif": "image/gif",
+      ".pdf": "application/pdf",
+    };
+
+    if (source.startsWith("data:")) {
+      const match = /^data:([^;,]*)(;base64)?,([\s\S]*)$/i.exec(source);
+      if (!match) throw new Error(`Invalid data URI for ${filename}.`);
+      contentType = match[1] || undefined;
+      bytes = match[2]
+        ? Buffer.from(decodeURIComponent(match[3]), "base64")
+        : Buffer.from(decodeURIComponent(match[3]), "utf8");
+    } else if (/^https?:\/\//i.test(source)) {
+      const response = await fetch(source, {
+        signal: AbortSignal.timeout(30_000),
+      });
+      if (!response.ok) {
+        throw new Error(
+          `Could not download attachment ${filename} (HTTP ${response.status}).`,
+        );
+      }
+      bytes = Buffer.from(await response.arrayBuffer());
+      contentType = response.headers.get("content-type")?.split(";")[0].trim();
+    } else {
+      bytes = await readFile(source);
+      contentType = mimeTypes[extname(source).toLowerCase()];
+    }
+
+    return {
+      filename,
+      content: bytes.toString("base64"),
+      encoding: "base64",
+      contentType:
+        contentType ||
+        mimeTypes[extname(filename).toLowerCase()] ||
+        "application/octet-stream",
+      cid,
+    };
+  }
+
+  private async sendMail(message: EmailMessage): Promise<void> {
+    const client = await this.getMailClient();
+    const attachments = await Promise.all(
+      (message.attachments || []).map((attachment) =>
+        this.prepareAttachment(attachment),
+      ),
+    );
+
+    const payload = {
+      to: [message.to],
+      displayName: "Insurify",
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+      attachments,
+    };
+
+    try {
+      await client.api.sendEmail(client.mailboxId, payload as V1SendRequest);
+    } catch (error: unknown) {
+      throw this.mailApiError("send", error);
+    }
+  }
 
   async sendCompanyDocumentEmail(
     companyEmail: string,
@@ -25,10 +177,7 @@ export class EmailService {
       driveLicence: string;
     },
   ) {
-    console.log("MAIL_USER at boot:", process.env.MAIL_USER);
-    console.log("MAIL_USER at boot:", process.env.MAIL_PASS);
-    return this.transporter.sendMail({
-      from: `"Insurify" <${process.env.MAIL_USER}>`,
+    return this.sendMail({
       to: companyEmail,
       subject: `New Car Insurance Document #${data.documentId}`,
       html: `
@@ -268,8 +417,7 @@ export class EmailService {
       .filter(Boolean)
       .join("\n");
 
-    return this.transporter.sendMail({
-      from: `"Insurify" <${process.env.MAIL_USER}>`,
+    return this.sendMail({
       to: companyEmail,
       subject: `New refund request — document #${documentId} (car ${carNumber})`,
       html,
@@ -303,8 +451,7 @@ export class EmailService {
       idImage: string;
     },
   ) {
-    return this.transporter.sendMail({
-      from: `"Insurify" <${process.env.MAIL_USER}>`,
+    return this.sendMail({
       to: companyEmail,
       subject: `New Life Insurance Request #${data.documentId}`,
       html: `
@@ -338,8 +485,7 @@ export class EmailService {
       avatar?: string;
     },
   ) {
-    return this.transporter.sendMail({
-      from: `"Insurify" <${process.env.MAIL_USER}>`,
+    return this.sendMail({
       to: companyEmail,
       subject: `New Individual Health Insurance Request #${data.documentId}`,
       html: `
@@ -402,8 +548,7 @@ export class EmailService {
       )
       .join("");
 
-    return this.transporter.sendMail({
-      from: `"Insurify" <${process.env.MAIL_USER}>`,
+    return this.sendMail({
       to: companyEmail,
       subject: `New Group Health Insurance Request #${data.documentId}`,
       html: `
