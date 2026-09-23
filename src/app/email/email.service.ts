@@ -177,6 +177,8 @@ export class EmailService {
       driveLicence: string;
     },
   ) {
+    console.log("companyEmail", companyEmail);
+
     return this.sendMail({
       to: companyEmail,
       subject: `New Car Insurance Document #${data.documentId}`,
@@ -184,7 +186,7 @@ export class EmailService {
         <h2>New Insurance Request</h2>
 
         <p><b>Document ID:</b> ${data.documentId}</p>
-        <p><b>Car Year:</b> ${data.carYear}</p>
+        <p><b>Car:</b> ${data.carYear}</p>
         <p><b>Price:</b> ${data.price}</p>
         <p><b>Final Price:</b> ${data.finalPrice}</p>
 

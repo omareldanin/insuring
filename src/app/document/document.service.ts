@@ -81,6 +81,20 @@ export class DocumentService {
       where: {
         id: data.carYearId,
       },
+      select: {
+        id: true,
+        year: true,
+        model: {
+          select: {
+            name: true,
+            make: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!carYear) {
@@ -165,7 +179,7 @@ export class DocumentService {
             documentId: document.id,
             price: data.price,
             finalPrice,
-            carYear: carYear.year.toString(),
+            carYear: `${carYear.model.make.name} - ${carYear.model.name} - ${carYear.year.toString()}`,
             idImage: data.idFile,
             carLicence: data.carLicenseFile,
             driveLicence: data.driveLicenseFile,
