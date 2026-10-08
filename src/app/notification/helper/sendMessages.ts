@@ -19,7 +19,7 @@ export async function sendOffersTemplate(rawPhone: string, content: string) {
     type: "template",
     template: {
       name: "offers",
-      language: { code: "en_US" },
+      language: { code: "en" },
       components: [
         {
           type: "body",
