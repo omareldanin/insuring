@@ -36,6 +36,7 @@ export async function sendOffersTemplate(rawPhone: string, content: string) {
     },
     timeout: 15000,
   });
+  console.log(res);
 
   return res.data; // يحتوي wamid
 }
