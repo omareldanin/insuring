@@ -3,6 +3,8 @@ import { Notification, UserRole } from "@prisma/client";
 import { PrismaService } from "src/prisma/prisma.service";
 import admin from "firebase-admin";
 import { env } from "src/config";
+import { sendOffersTemplate } from "./helper/sendMessages";
+import { SendBroadcastDto } from "./notification.dto";
 
 admin.initializeApp({
   credential: admin.credential.cert({
@@ -26,8 +28,9 @@ export class NotificationService {
 
     const user = await this.prisma.user.findUnique({
       where: { id: +data.userId },
-      select: { id: true, fcm: true },
+      select: { id: true, fcm: true, phone: true },
     });
+
     if (user) {
       ids = [user.id];
       tokens = user.fcm;
@@ -134,65 +137,127 @@ export class NotificationService {
     });
     return { message: "success" };
   }
-  async sendNotificationToAll(data: {
-    title: string;
-    content: string;
-    role?: UserRole; // optional: target only a specific role
-  }) {
-    // 1. Get all users (optionally filtered by role) who have at least one token
-    const users = await this.prisma.user.findMany({
+
+  async sendNotificationToAll(data: SendBroadcastDto) {
+    const isWhatsApp = data.type === "whatsapp";
+
+    if (
+      isWhatsApp &&
+      (!process.env.WA_PHONE_NUMBER_ID || !process.env.WA_TOKEN)
+    ) {
+      throw new Error("WhatsApp configuration is missing");
+    }
+
+    const matchedUsers = await this.prisma.user.findMany({
       where: {
+        ...(data.userIds !== undefined ? { id: { in: data.userIds } } : {}),
         ...(data.role ? { role: data.role } : {}),
-        fcm: { isEmpty: false },
+        ...(isWhatsApp ? {} : { fcm: { isEmpty: false } }),
       },
-      select: { id: true, fcm: true },
+      select: {
+        id: true,
+        fcm: true,
+        phone: true,
+      },
     });
 
-    // 2. Flatten every user's tokens into one list
-    const tokens = users.flatMap((u) => u.fcm);
+    const users = isWhatsApp
+      ? matchedUsers.filter((user) => Boolean(user.phone?.trim()))
+      : matchedUsers;
 
-    // 3. Send in batches of 500 (FCM multicast limit)
     let successCount = 0;
     let failureCount = 0;
 
-    for (let i = 0; i < tokens.length; i += 500) {
-      const batch = tokens.slice(i, i + 500);
+    if (isWhatsApp) {
+      // Limit concurrent requests. Each recipient gets a separate API call.
+      const batchSize = 10;
 
-      const response = await admin.messaging().sendEachForMulticast({
-        notification: { title: data.title, body: data.content },
-        tokens: batch,
-      });
+      for (let i = 0; i < users.length; i += batchSize) {
+        const batch = users.slice(i, i + batchSize);
 
-      successCount += response.successCount;
-      failureCount += response.failureCount;
+        const outcomes = await Promise.allSettled(
+          batch.map((user) => sendOffersTemplate(user.phone!, data.content)),
+        );
 
-      response.responses.forEach((res, idx) => {
-        if (!res.success) {
+        outcomes.forEach((outcome, index) => {
+          if (outcome.status === "fulfilled") {
+            successCount++;
+          } else {
+            failureCount++;
+
+            console.warn(
+              `WhatsApp request failed for user ${batch[index].id}:`,
+              outcome.reason instanceof Error
+                ? outcome.reason.message
+                : "Unknown error",
+            );
+          }
+        });
+      }
+    } else {
+      const tokens = users.flatMap((user) => user.fcm);
+
+      for (let i = 0; i < tokens.length; i += 500) {
+        const batch = tokens.slice(i, i + 500);
+
+        try {
+          const response = await admin.messaging().sendEachForMulticast({
+            notification: {
+              title: data.title,
+              body: data.content,
+            },
+            tokens: batch,
+          });
+
+          successCount += response.successCount;
+          failureCount += response.failureCount;
+
+          response.responses.forEach((result, index) => {
+            if (!result.success) {
+              console.warn(
+                `FCM request failed at batch index ${index}:`,
+                result.error?.message,
+              );
+            }
+          });
+        } catch (error) {
+          failureCount += batch.length;
+
           console.warn(
-            `❌ Failed to send to token ${batch[idx]}:`,
-            res.error?.message,
+            "FCM batch failed:",
+            error instanceof Error ? error.message : "Unknown error",
           );
         }
-      });
+      }
     }
 
-    // 4. Save one notification row per user in DB
-    const results = await this.prisma.notification.createMany({
-      data: users.map((u) => ({
-        title: data.title,
-        content: data.content,
-        userId: u.id,
-      })),
-    });
-    console.log("successCount", successCount);
-    console.log("failureCount", failureCount);
+    // Preserve your existing behavior: save for all targeted users,
+    // including users whose external message request failed.
+    const saved = users.length
+      ? (
+          await this.prisma.notification.createMany({
+            data: users.map((user) => ({
+              title: data.title,
+              content: data.content,
+              userId: user.id,
+            })),
+          })
+        ).count
+      : 0;
 
     return {
-      message: "success",
+      message:
+        failureCount === 0
+          ? "success"
+          : successCount === 0
+            ? "failed"
+            : "partial_success",
+      channel: isWhatsApp ? "whatsapp" : "push",
       sentTo: users.length,
+      skippedCount: matchedUsers.length - users.length,
       successCount,
       failureCount,
-      saved: results.count,
+      saved,
     };
   }
 }

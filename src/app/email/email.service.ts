@@ -177,29 +177,140 @@ export class EmailService {
       driveLicence: string;
     },
   ) {
-    console.log("companyEmail", companyEmail);
+    const htmlEscapes: Record<string, string> = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    };
+    const car = data.carYear.replace(
+      /[&<>"']/g,
+      (character) => htmlEscapes[character],
+    );
 
     return this.sendMail({
       to: companyEmail,
       subject: `New Car Insurance Document #${data.documentId}`,
+      text: [
+        "New Car Insurance Request",
+        "",
+        `Document ID: #${data.documentId}`,
+        `Car: ${data.carYear}`,
+        `Price: ${data.price}`,
+        `Final price: ${data.finalPrice}`,
+        "",
+        "Attached documents: National ID, Car licence, Driver licence.",
+      ].join("\n"),
       html: `
-        <h2>New Insurance Request</h2>
+        <!DOCTYPE html>
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1" />
+            <title>New Car Insurance Request</title>
+          </head>
+          <body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;color:#121E2C;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                   style="background:#f4f6f8;padding:24px 0;">
+              <tr>
+                <td align="center">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+                         style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5e7eb;">
 
-        <p><b>Document ID:</b> ${data.documentId}</p>
-        <p><b>Car:</b> ${data.carYear}</p>
-        <p><b>Price:</b> ${data.price}</p>
-        <p><b>Final Price:</b> ${data.finalPrice}</p>
+                    <!-- Header -->
+                    <tr>
+                      <td bgcolor="#1c46a2"
+                          style="background-color:#1c46a2;background-image:linear-gradient(90deg,#1c46a2,#31e5b7);padding:24px;text-align:center;color:#ffffff;">
+                        <h1 style="margin:0;font-size:22px;font-weight:600;">New Car Insurance Request</h1>
+                        <p style="margin:6px 0 0;font-size:14px;line-height:1.6;">
+                          A new car insurance request is ready for review.
+                        </p>
+                      </td>
+                    </tr>
 
-        <h3>Documents</h3>
+                    <!-- Summary card -->
+                    <tr>
+                      <td style="padding:24px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+                          <tr>
+                            <td style="font-size:13px;color:#6b7280;padding:6px 0;width:150px;">Document ID</td>
+                            <td style="font-size:14px;font-weight:600;padding:6px 0;">#${data.documentId}</td>
+                          </tr>
+                          <tr>
+                            <td style="font-size:13px;color:#6b7280;padding:6px 0;">Car</td>
+                            <td style="font-size:14px;font-weight:600;padding:6px 0;">${car}</td>
+                          </tr>
+                          <tr>
+                            <td style="font-size:13px;color:#6b7280;padding:6px 0;">Price</td>
+                            <td style="font-size:14px;font-weight:600;padding:6px 0;">${data.price}</td>
+                          </tr>
+                          <tr>
+                            <td style="font-size:13px;color:#1c46a2;font-weight:600;padding:12px 0 4px;border-top:1px solid #e5e7eb;">Final price</td>
+                            <td style="font-size:18px;color:#1c46a2;font-weight:700;padding:12px 0 4px;border-top:1px solid #e5e7eb;">${data.finalPrice}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
 
-    <h3>National Id Image</h3>
-        <img src="cid:idImage" width="300"/>
+                    <!-- Attached documents -->
+                    <tr>
+                      <td style="padding:0 24px 24px;">
+                        <h2 style="margin:0 0 12px;font-size:16px;color:#121E2C;">Attached documents</h2>
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                               style="table-layout:fixed;">
+                          <tr>
+                            <td style="padding:8px;width:33.33%;vertical-align:top;">
+                              <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#ffffff;">
+                                <div style="background:#f3f4f6;padding:8px 10px;font-size:12px;color:#374151;font-weight:600;">
+                                  National ID
+                                </div>
+                                <img src="cid:idImage" alt="National ID" width="150"
+                                     style="display:block;width:100%;height:auto;border:0;" />
+                              </div>
+                            </td>
+                            <td style="padding:8px;width:33.33%;vertical-align:top;">
+                              <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#ffffff;">
+                                <div style="background:#f3f4f6;padding:8px 10px;font-size:12px;color:#374151;font-weight:600;">
+                                  Car licence
+                                </div>
+                                <img src="cid:carLicence" alt="Car licence" width="150"
+                                     style="display:block;width:100%;height:auto;border:0;" />
+                              </div>
+                            </td>
+                            <td style="padding:8px;width:33.33%;vertical-align:top;">
+                              <div style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#ffffff;">
+                                <div style="background:#f3f4f6;padding:8px 10px;font-size:12px;color:#374151;font-weight:600;">
+                                  Driver licence
+                                </div>
+                                <img src="cid:driveLicence" alt="Driver licence" width="150"
+                                     style="display:block;width:100%;height:auto;border:0;" />
+                              </div>
+                            </td>
+                          </tr>
+                        </table>
+                        <p style="margin:12px 0 0;font-size:12px;line-height:1.6;color:#6b7280;">
+                          The documents are included as attachments for your review.
+                        </p>
+                      </td>
+                    </tr>
 
-        <p>Car Licence:</p>
-        <img src="cid:carLicence" width="300"/>
-
-        <p>Driver Licence:</p>
-        <img src="cid:driveLicence" width="300"/>
+                    <!-- Footer -->
+                    <tr>
+                      <td style="background:#f8fafc;padding:16px 24px;border-top:1px solid #e5e7eb;text-align:center;">
+                        <p style="margin:0;font-size:12px;line-height:1.6;color:#6b7280;">
+                          This message was sent automatically by <b style="color:#1c46a2;">Insurify</b>.<br />
+                          Please review the request and the attached documents.
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </body>
+        </html>
       `,
       attachments: [
         {

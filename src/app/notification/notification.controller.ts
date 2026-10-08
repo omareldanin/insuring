@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
+  ValidationPipe,
 } from "@nestjs/common";
 import { NotificationService } from "./notification.service";
 import { NoFilesInterceptor } from "@nestjs/platform-express";
@@ -36,9 +37,13 @@ export class NotificationController {
   @UseInterceptors(NoFilesInterceptor())
   @UseGuards(JwtAuthGuard)
   @Post("broadcast")
-  async broadcast(@Body() dto: SendBroadcastDto) {
+  async broadcast(
+    @Body(new ValidationPipe({ whitelist: true }))
+    dto: SendBroadcastDto,
+  ) {
     return this.notificationService.sendNotificationToAll(dto);
   }
+
   @UseGuards(JwtAuthGuard)
   @Get("/getUserNotifications")
   getUserNotifications(
